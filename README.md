@@ -1,5 +1,6 @@
 # droid4-bringup
 ## a Newbies Guide of how to make your phone(droid 4) to linux phone
+This Guide is also available in [wordpress](https://guidelinuxphone.wordpress.com/2018/06/26/bringup/).
 <p style="text-align: left;">
 <h1>Note:Modifying or replacing your device's software will void your device's warranty, and can cause to damage to the device and to your computer or losing data(of device and computer), execute the following commands is entirely at your own risk.</h1><br><br>
 <h2>Note:this guide try to apply the bringup of droid4 flowing <a href="http://elektranox.org">Sebastian Reichel</a> and <a href="http://muru.com/linux/d4/">Tony Lindgren</a> blog. there still missing parts such as dial or receive sms, that i hope that will fill up in the next chapters </h2>
