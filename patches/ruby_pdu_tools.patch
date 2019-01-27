@@ -1,12 +1,12 @@
---- overlays/lib/pdu_tools.rb	2018-12-03 15:44:38.000000000 +0200
-+++ overlays/lib/pdu_tools.rb	2019-01-17 22:16:58.662588563 +0200
+--- rootfs/usr/local/bin/lib/pdu_tools.rb
++++ rootfs/usr/local/bin/lib/pdu_tools.rb
 @@ -1,4 +1,3 @@
 -require 'phone'
  require 'active_support/all'
  
  require_relative './pdu_tools/helpers'
---- overlays/lib/pdu_tools/encoder.rb	2018-12-03 15:44:38.000000000 +0200
-+++ overlays/lib/pdu_tools/encoder.rb	2019-01-17 22:26:44.850986354 +0200
+--- rootfs/usr/local/bin/lib/pdu_tools/encoder.rb
++++ rootfs/usr/local/bin/lib/pdu_tools/encoder.rb
 @@ -100,13 +100,10 @@
      end
  
@@ -24,3 +24,25 @@
        address_length = "%02X" % address.length
        address_encoded = normal2swapped address
        address_length + address_type + address_encoded
+--- rootfs/usr/local/bin/droid4-sms-send.rb
++++ rootfs/usr/local/bin/droid4-sms-send.rb
+@@ -7,7 +7,7 @@
+ #
+ 
+ require "mail"
+-require "pdu_tools"
++require_relative "lib/pdu_tools"
+ 
+ $device = "motmdm3"
+ 
+--- rootfs/usr/local/bin/droid4-sms-read.rb
++++ rootfs/usr/local/bin/droid4-sms-read.rb
+@@ -12,7 +12,7 @@
+ # with maildirmake ~/Maildir/INBOX.sms
+ #
+ 
+-require "pdu_tools"
++require_relative "lib/pdu_tools"
+ 
+ $device = "motmdm9"
+ $maildir = "#{Dir.home}/Maildir/INBOX.sms"
