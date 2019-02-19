@@ -1,0 +1,6 @@
+[Unit]
+Description=startup target
+After=multi-user.target getty.target
+
+[Install]
+WantedBy=default.target

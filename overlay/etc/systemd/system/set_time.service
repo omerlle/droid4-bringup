@@ -1,0 +1,9 @@
+[Unit]
+Description=set time
+After=multi-user.target getty.target
+
+[Service]
+Type=idle
+ExecStart=/sbin/hwclock -s
+[Install]
+WantedBy=startup.target

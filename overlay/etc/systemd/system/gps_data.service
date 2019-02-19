@@ -1,0 +1,10 @@
+[Unit]
+Description=enable and read gnss0
+After=modem.service
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/sbin/modprobe gnss-motmdm
+ExecStop=/sbin/rmmod gnss-motmdm
+[Install]
+WantedBy=startup.target
