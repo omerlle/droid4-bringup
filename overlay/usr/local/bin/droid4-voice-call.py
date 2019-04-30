@@ -1,52 +1,50 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
-import wave
-import alsaaudio
+import evdev
+import struct
+import os
 import select
 import threading
 import logging
+from time import sleep
 from subprocess import call
 CHUNK=1024
 MODEM='/dev/motmdm1'
 CALL_LIST_FILENAME='/tmp/call_list'
 SIGNALSTRENGTH_FILENAME='/tmp/signal_strength'
-INCOMING_CALL_WAVE='/usr/share/sounds/modem/incomming_call_sound.wav'
 stop=True
-
-def play_wave_to_pcm(e):
+def pwm_vibrator():
 	logging.basicConfig(filename=CALL_LIST_FILENAME,level=logging.INFO,format='[%(asctime)s]|%(message)s',)
 	logging.getLogger('call_list')
-	wf = wave.open(INCOMING_CALL_WAVE, 'rb')
-	channels=wf.getnchannels()
-	rate=wf.getframerate()
-	wave_format=alsaaudio.PCM_FORMAT_U8 #PCM_FORMAT_FLOAT_LE
-	data=[]	
-	while True:
-		chunk=wf.readframes(CHUNK)
-		if chunk == '': break
-		data.append(chunk)
-	wf.close()
-	length=len(data)
+	for name in evdev.list_devices():
+		dev = evdev.InputDevice(name)
+		if evdev.ecodes.EV_FF in dev.capabilities() and dev.name=="pwm-vibrator":
+			find=True
+			break
+	if not find:
+		logging.error("not found pwm-vibrator")
+		return
+	duration_ms = 150
+	effect_type = evdev.ff.EffectType(ff_rumble_effect=evdev.ff.Rumble(strong_magnitude=0x0000, weak_magnitude=0xffff))
+	effect = evdev.ff.Effect(
+evdev.ecodes.FF_RUMBLE, -1, 0, evdev.ff.Trigger(0, 0), evdev.ff.Replay(duration_ms, 0), effect_type
+)
+	effect_id = dev.upload_effect(effect)
+
+	FORMAT = 'llHHI'
+	event =struct.pack(FORMAT, 0,0,evdev.ecodes.EV_FF, 0,1)
 	while True:
 		e.wait()
-		print("start play..")
-		i=0
-		sound_out = alsaaudio.PCM()  # open default sound output
-		sound_out.setchannels(channels)  # use only one channel of audio (aka mono)
-		sound_out.setrate(rate)  # how many samples per second
-		sound_out.setformat(wave_format)  # sample format
+		print("start vibrate..")
 		while not stop:
-			sound_out.write(data[i])
-			i=(i+1)%length
-		sound_out = None
-		#mixaer=alsaaudio.Mixer(control='Speaker Right')
-		
+			os.write(dev.fileno(), event)
+			sleep(2)
+	dev.erase_effect(effect_id)	
 if __name__ == '__main__':
 	e = threading.Event()
-	play_wave =threading.Thread(name="playing",target=play_wave_to_pcm,args=(e,))
-	play_wave.setDaemon(True)
-	play_wave.start()
+	vibrate =threading.Thread(name="vibraty",target=pwm_vibrator)
+	vibrate.setDaemon(True)
+	vibrate.start()
 	modem_read = open(MODEM,"r")
 	pollerObject = select.poll() 
 	pollerObject.register(modem_read, select.POLLIN)
@@ -69,10 +67,8 @@ if __name__ == '__main__':
 			if e.isSet(): print('error')
 			stop=True
 			e.clear()
-			call(["amixer", "sset", "Speaker Right", "Voice"])
 		if line.startswith("~+CIEV=1,0,0"):
 			stop=True
 			e.clear()
-			call(["amixer", "sset", "Speaker Right", "HiFi"])
 		if line.startswith("D:OK"):
-			call(["amixer", "sset", "Speaker Right", "Voice"])	
+			pass

@@ -48,8 +48,7 @@
 -$maildir = "#{Dir.home}/Maildir/INBOX.sms"
 +$maildir = "/root/Maildir/INBOX.sms"
  $arg0 = ARGV[0]
--
-+$sms_sound = "/usr/share/sounds/modem/incomming_sms_sound.wav"
+
  def print_help()
    printf "Usage: %s [optionalpdu]\n", $0
    printf "Without options, %s keeps reading /dev/motmdm9, then\n", $0
@@ -58,7 +57,7 @@
      return -1
    end
 -
-+  Process.spawn("aplay "+$sms_sound);
++  Process.spawn("pwm-vibrator.py")
    return decoded.size
  end
 
