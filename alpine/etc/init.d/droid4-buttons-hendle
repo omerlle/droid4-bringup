@@ -1,0 +1,9 @@
+#!/sbin/openrc-run
+
+depend() {
+        after modules
+}
+
+command="/usr/local/bin/hardware/buttons_hendler.py"
+command_background=true
+pidfile="/run/${RC_SVCNAME}.pid"

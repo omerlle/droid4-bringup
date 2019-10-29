@@ -1,0 +1,10 @@
+# Reload udev rules with: udevadm control --reload
+
+SUBSYSTEMS=="motmdm", GROUP="dialout", MODE="0664"
+SUBSYSTEMS=="gnss", GROUP="root", MODE="0644"
+
+# ofono needs this
+KERNEL=="motmdm1", ENV{OFONO_DRIVER}="motmdm"
+
+# mdm6600 needs autoidle enabled, otherwise ohci will block deeper pm states for soc
+ACTION=="add", SUBSYSTEM=="usb", ATTRS{idVendor}=="22b8", ATTRS{idProduct}=="2a70", TEST=="power/control" ATTR{power/control}="auto"

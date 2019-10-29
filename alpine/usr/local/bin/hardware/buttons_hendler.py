@@ -23,7 +23,7 @@ if __name__ == '__main__':
 					if key.type == evdev.ecodes.EV_KEY:
 						if key.value == 0:#up  hold=2 down=1
 							if key.code == evdev.ecodes.KEY_POWER:
-								leds.set_leds('lcd','turn off') if leds.is_on('lcd') else leds.set_leds('lcd',
+								leds.set_leds('lcd','turn off') if leds.is_on('lcd') else leds.set_leds('lcd','turn on')
 							elif key.code == evdev.ecodes.KEY_VOLUMEUP:
 								if leds.is_on('lcd'): leds.set_leds('lcd',"increase",25,True)
 							elif key.code == evdev.ecodes.KEY_VOLUMEDOWN:

@@ -1,0 +1,10 @@
+#!/sbin/openrc-run
+
+depend() {
+        need sshd
+        after modules
+}
+
+command="/usr/local/bin/usb_configfs.sh"
+command_args="start"
+pidfile="/run/${RC_SVCNAME}.pid"

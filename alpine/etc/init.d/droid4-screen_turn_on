@@ -1,0 +1,9 @@
+#!/sbin/openrc-run
+
+depend() {
+        after modules
+}
+
+command="/usr/local/bin/hardware/led_hendler.py"
+command_args='"set brightness" "lcd" "turn on"'
+pidfile="/run/${RC_SVCNAME}.pid"
