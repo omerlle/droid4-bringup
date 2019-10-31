@@ -4,7 +4,7 @@ After=set_time.service
 [Service]
 RemainAfterExit=yes
 ExecStartPre=/bin/sleep 10
-ExecStart=/usr/local/bin/usb_configfs.sh start
+ExecStart=/usr/local/bin/usb_configfs.sh start /dev/mmcblk0p3
 ExecStop=/usr/local/bin/usb_configfs.sh stop
 [Install]
 WantedBy=startup.target
