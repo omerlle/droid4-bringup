@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import evdev
 import struct
 import os
@@ -26,4 +26,4 @@ evdev.ecodes.FF_RUMBLE, -1, 0, evdev.ff.Trigger(0, 0), evdev.ff.Replay(duration_
 		sleep(duration_ms/1000.0)
 		dev.erase_effect(effect_id)
 	else:
-		print "not found pwm-vibrator"
+		print("not found pwm-vibrator")

@@ -5,7 +5,7 @@ phy_module="phy_cpcap_usb"
 udc_glue_module="omap2430"
 udc_module=musb_hdrc
 # musb-hdrc.1.auto
-mass_storage_backend=/dev/mmcblk0p3
+mass_storage_backend=$2 #/dev/mmcblk0p3
 
 modprobe libcomposite > /dev/null 2>&1
 	
@@ -161,7 +161,7 @@ case $1 in
 	;;
 
         *)
-	echo "Usage: $0 [start|stop|restart]"
+	echo "Usage: $0 [start|stop|restart] [dev]"
 	exit 1
         ;;
 esac
