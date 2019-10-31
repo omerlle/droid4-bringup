@@ -6,5 +6,5 @@ depend() {
 }
 
 command="/usr/local/bin/usb_configfs.sh"
-command_args="start"
+command_args="start /dev/mmcblk0p3"
 pidfile="/run/${RC_SVCNAME}.pid"
