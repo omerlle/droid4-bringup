@@ -1,4 +1,4 @@
-LABEL=alpine
+LABEL=Linux on mmcblk0p1
 PRIORITY=10
 DTB=/boot/omap4-droid4-xt894.dtb
 KERNEL=/boot/zImage
