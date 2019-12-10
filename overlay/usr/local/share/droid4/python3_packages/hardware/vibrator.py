@@ -4,10 +4,8 @@ import struct
 import os
 import sys
 from time import sleep
-if __name__ == '__main__':
-	duration_ms = 150
+def vibrate(duration_ms = 150):
 	find=False
-	if len(sys.argv)>1 : duration_ms = int(sys.argv[1])
 	for name in evdev.list_devices():
 		dev = evdev.InputDevice(name)
 		if evdev.ecodes.EV_FF in dev.capabilities() and dev.name=="pwm-vibrator":
@@ -27,3 +25,8 @@ evdev.ecodes.FF_RUMBLE, -1, 0, evdev.ff.Trigger(0, 0), evdev.ff.Replay(duration_
 		dev.erase_effect(effect_id)
 	else:
 		print("not found pwm-vibrator")
+if __name__ == '__main__':
+	duration_ms = 150
+	if len(sys.argv)>1 : duration_ms = int(sys.argv[1])
+	vibrate(duration_ms)
+	
