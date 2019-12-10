@@ -1,0 +1,12 @@
+#!/sbin/openrc-run
+
+depend() {
+	need dev
+	need localmount
+	after modules
+	before wpa_supplicant
+}
+
+command="/usr/local/bin/droid4-startup"
+command_args='start'
+pidfile="/run/${RC_SVCNAME}.pid"
