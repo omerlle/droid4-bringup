@@ -1,6 +1,7 @@
 #!/bin/sh
 mac=""
 DROID4_CONFIG_FILE='/root/.droid4/startup.config'
+UART_IDLE_MS=3000
 #
 # Note that this does not consider the calibration data right now
 #
