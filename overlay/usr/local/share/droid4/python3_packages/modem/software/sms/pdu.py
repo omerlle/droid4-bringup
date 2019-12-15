@@ -1,6 +1,7 @@
 import software.modem_helpers as helpers
 import logging
 import string
+import math
 import datetime
 gsm_byte_to_char = (u"@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞ\x1bÆæßÉ !\"#¤%&'()*+,-./0123456789:;<=>?¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ`¿abcdefghijklmnopqrstuvwxyzäöñüà")
 gsm_special={10:'0x0C',20:'^',40:'{',41:'}',47:'\\',60:'[',61:'~',62:']',64:'|',101:'€'}
@@ -145,11 +146,11 @@ class PDUSend:
 			count_hex='%02x'%(count)
 			information_element_identifier="08"# 0x08 for concatenated short message 16-bit reference number
 			for x in range(count):
-				information_eleent_data=reference_number+count_hex+'%02x'%(x+1)
+				information_element_data=reference_number+count_hex+'%02x'%(x+1)
 				user_data_header=information_element_identifier+'%02x'%(int(len(information_element_data)/2))+information_element_data
 				p_sms_body=smsBody[x*248:x*248+248]
 				header='%02x'%(int(len(user_data_header)/2))+user_data_header
 				data=header+p_sms_body
-				self.tpdus.append('41'+msg+'%02x'%(int(len(data)/2))+data)
+				self.tpdus.append('41'+msg+data_coding_scheme+'%02x'%(int(len(data)/2))+data)
 		else:
 			self.tpdus.append('01'+msg+data_coding_scheme+'%02x'%length+smsBody)
