@@ -86,7 +86,6 @@ return to base directory by:<br>
 
 <h4>build rootfs</h4>
 <h5>you can build rootfs by one of the following branches:</h5><br>
-https://github.com/omerlle/droid4-bringup/tree/alpine
 <a href="https://github.com/omerlle/droid4-bringup/tree/alpine/">alpine</a><br>
 <a href="https://github.com/omerlle/droid4-bringup/tree/ubuntu/">ubuntu</a><br>
 
