@@ -67,7 +67,7 @@ class Client():
 			message=b'\xff\x15'+ bytes([header_size])+length.to_bytes(size, 'big')+msg
 			print('sending:'+str(message))
 			self.sock.sendall(message)
-		except( self.socket.error, msg):
+		except( socket.error, msg):
 			self.sock.close()
 			sys.exit(1)
 	def connect_socket(self):
