@@ -1,8 +1,0 @@
-[Unit]
-Description=manage voice call
-After=modem.service
-[Service]
-ExecStart=/usr/local/bin/droid4-voice-call.py
-ExecStartPre=/bin/sh -c "while [ ! -c /dev/motmdm1 ] ;do sleep 1; done"
-[Install]
-WantedBy=startup.target

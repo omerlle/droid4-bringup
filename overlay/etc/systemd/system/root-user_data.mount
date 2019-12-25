@@ -1,9 +1,9 @@
 [Unit]
-ConditionPathExists=/dev/mmcblk0p2
+ConditionPathExists=/dev/mmcblk0p3
 Before=sysinit.target
 
 [Mount]
-What=/dev/mmcblk0p2
+What=/dev/mmcblk0p3
 Where=/root/user_data
 Type=vfat
 

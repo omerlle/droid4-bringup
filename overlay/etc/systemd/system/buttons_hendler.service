@@ -1,7 +1,0 @@
-[Unit]
-Description=hendle buttons event
-After=set_time.service
-[Service]
-ExecStart=/bin/sh -c "while [ ! -c /dev/input/event3 ] ;do sleep 1; done ; /usr/local/bin/hardware/buttons_hendler.py"
-[Install]
-WantedBy=startup.target

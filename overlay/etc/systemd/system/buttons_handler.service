@@ -1,0 +1,8 @@
+[Unit]
+Description=hendle buttons event
+After=set_time.service
+[Service]
+Environment="PYTHONPATH=/usr/local/share/droid4/python3_packages"
+ExecStart=/bin/sh -c "while [ ! -c /dev/input/event3 ] ;do sleep 1; done ; /usr/local/share/droid4/python3_packages/hardware/buttons_handler.py"
+[Install]
+WantedBy=startup.target

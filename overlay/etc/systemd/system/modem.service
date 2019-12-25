@@ -1,10 +1,9 @@
 [Unit]
-Description=enable/diable motmdm1
+Description=modem manage
 After=set_time.service
 [Service]
-Type=oneshot
-RemainAfterExit=yes
-ExecStart=/bin/sh -c "while [ ! -c /dev/motmdm1 ] ;do sleep 1; done;echo 'AT+CFUN=1' > /dev/motmdm1;echo 'AT+SCRN=0' > /dev/motmdm1"
-ExecStop=/bin/sh -c "echo 'AT+CFUN=0' > /dev/motmdm1"
+Environment="PYTHONPATH=/usr/local/share/droid4/python3_packages"
+ExecStart=/usr/local/share/droid4/python3_packages/modem/main.py
+ExecStartPre=/bin/sh -c "while [ ! -c /dev/motmdm1 ] ;do sleep 1; done"
 [Install]
 WantedBy=startup.target

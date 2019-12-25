@@ -3,6 +3,6 @@ Description=set motmdm sound card
 After=set_time.service
 [Service]
 ExecStartPre=/sbin/modprobe snd-soc-motmdm
-ExecStart=/bin/sh -c 'sleep 1; amixer set "Speaker Right" HiFi; amixer set "HiFi" 50%; amixer set "Call Noise Cancellation" unmute; amixer set "Call Output" Handset;amixer set "Call" 100%; amixer set "Mic2" 100%; amixer set "Left" "Mic 2"; amixer set "Voice" 3%; amixer set "Voice Loopback" mute'
+ExecStart=/bin/sh -c 'sleep 1; amixer set "Speaker Right" "Voice"; amixer set "HiFi" 50%; amixer set "Call Noise Cancellation" unmute; amixer set "Call Output" Speakerphone;amixer set "Call" 100%; amixer set "Mic2" 100%; amixer set "Left" "Mic 2"; amixer set "Voice" 50%'
 [Install]
 WantedBy=startup.target

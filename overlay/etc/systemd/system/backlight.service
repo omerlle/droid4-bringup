@@ -1,8 +1,0 @@
-[Unit]
-Description=turn on the backlight
-After=set_time.service
-#ConditionFirstBoot=yes
-[Service]
-ExecStart=/bin/sh -c "while [ ! -f  "/sys/class/leds/lm3532::backlight/brightness"] ;do sleep 1; done; /usr/local/bin/hardware/led_hendler.py 'set brightness' 'lcd' 'turn on';echo 100 > /sys/class/leds/kbd_backlight/brightness"
-[Install]
-WantedBy=startup.target
