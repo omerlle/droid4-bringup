@@ -122,7 +122,7 @@ class ModemManager:
 					elif line == "~+WAKEUP":
 						pass
 					elif line.startswith("~+CLIP=\""):
-						self.last_call = "972"+line.split('"', 2)[1][1:]
+						self.last_call = line.split('"', 2)[1]
 						nickname=self.db.get_value_sql("SELECT nickname FROM phone_book WHERE phone_number='"+self.last_call+"';",True)
 						line="GOT CALL, NUMBER:"+self.last_call+"("+str(nickname)+")"
 						logging.debug(line)
