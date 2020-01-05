@@ -9,7 +9,7 @@ import string
 import traceback
 import logging
 import threading
-import datetime
+import utils.date_helper
 import math
 import hardware.led_handler as leds_handler
 import hardware.vibrator as vibrator
@@ -30,21 +30,21 @@ class SmsManager:
 		self.sender.start_thread()
 	def stop_thread(self):
 		self.sms_queue.put(['stop',None])
-	def send_message(self,message,nicknames=None,numbers=None):
+	def send_message(self,message,nicknames=None,numbers=[]):
 		phones=[]
 		#logging.warning("SELECT phone_number FROM phone_book WHERE nickname  in ("+nicknames+");")
 		if nicknames:
 			phones=self.db.get_data_sql("SELECT phone_number,nickname FROM phone_book WHERE nickname  in ('"+nicknames.replace(",","','")+"');")
 #		logging.warning(str(len(phones))+"f"+str(len(nicknames.split(","))))
 			if len(phones)!=len(nicknames.split(",")):print("error='bad nickname'")
-		if numbers:phones.extend(self.db.get_data_sql("SELECT phone_number,nickname FROM phone_book WHERE phone_number in ('"+numbers.replace(",","','")+"');"))
+		if numbers:phones.extend([[phone,''] for phone in numbers])
 		logging.warning(phones)
 		if not phones:error='no number'
 #		TODO:map(int,phones)error='bad number/len'
 		logging.warning("SEND_SMS:("+",".join([phone+"("+nickname+")" for phone,nickname in phones])+")"+message)
 		for phone,nickname in phones:
 			pdu_msg=pdu.PDUSend(phone,message,nickname,self.db)
-			if not config.DRY_RUN:self.sender.send_msg(pdu_msg,datetime.datetime.today())
+			if not config.DRY_RUN:self.sender.send_msg(pdu_msg,date_helper.date_to_string())
 	def find_msg_id(self,sms,date):
 		msg_ids=self.db.get_list_sql("select id from messages where reference_number="+str(sms.reference_number)+" and total_parts_number="+str(sms.total_parts_number)+" and phone_number='"+ sms.SenderPhoneNumber+"' and complete='n';") # (complete='n'?)'
 		if len(msg_ids) == 0 : msg_id=-1
@@ -58,26 +58,25 @@ class SmsManager:
 	def insert_new_sms(self,msg):
 		new=None
 		sms = pdu.PDUReceive(msg)
-		date=sms.ServiceCenterTimeStamp.strftime("%Y-%m-%d %H:%M:%S")
 		adv=str(sms.reference_number)+","+str(sms.sequence_part_number)+"/"+str(sms.total_parts_number) if sms.total_parts_number > 1 else "1/1"
 		logging.debug(sms.tpdu+","+sms.SenderPhoneNumber+","+date+","+sms.msg+","+adv)
 		if sms.total_parts_number == 1:
 			db_name=self.db.get_value_sql("SELECT nickname FROM phone_book WHERE phone_number='"+sms.SenderPhoneNumber+"';",True)
-			msg_id=self.db.insert_row_and_get_id('INSERT INTO messages (msg, phone_number, date, phone_book_nickname) VALUES (?,?,?,?)',(sms.msg,sms.SenderPhoneNumber,date,db_name))
-			self.db.run_sql('INSERT INTO pdus (pdu, date, msg_id) VALUES (?,?,?)',(sms.tpdu,date, msg_id))
-			new=[sms.msg,sms.ServiceCenterTimeStamp,sms.SenderPhoneNumber,db_name]
+			msg_id=self.db.insert_row_and_get_id('INSERT INTO messages (msg, phone_number, date, phone_book_nickname) VALUES (?,?,?,?)',(sms.msg,sms.SenderPhoneNumber,sms.ServiceCenterDateStamp,db_name))
+			self.db.run_sql('INSERT INTO pdus (pdu, date, msg_id) VALUES (?,?,?)',(sms.tpdu,sms.ServiceCenterDateStamp, msg_id))
+			new=[sms.msg,sms.ServiceCenterDateStamp,sms.SenderPhoneNumber,db_name]
 		else:
-			msg_id=self.find_msg_id(sms,date)
+			msg_id=self.find_msg_id(sms,sms.ServiceCenterDateStamp)
 			logging.debug('msg_id:'+str(msg_id))	
 			if msg_id != -1:
-				self.db.run_sql('INSERT INTO pdus (pdu, date, msg_id, sequence_part_number, tmp_msg) VALUES (?,?,?,?,?)',(sms.tpdu, date, msg_id, sms.sequence_part_number, sms.msg))
+				self.db.run_sql('INSERT INTO pdus (pdu, date, msg_id, sequence_part_number, tmp_msg) VALUES (?,?,?,?,?)',(sms.tpdu, sms.ServiceCenterDateStamp, msg_id, sms.sequence_part_number, sms.msg))
 				if sms.total_parts_number == int(self.db.get_value_sql("SELECT count(id) from pdus where msg_id="+str(msg_id)+";")):
 					msg="".join(self.db.get_list_sql("SELECT tmp_msg from pdus WHERE msg_id=" + str(msg_id) +" ORDER BY sequence_part_number"))
 #					logging.debug(msg)
 					self.db.run_sql("UPDATE messages SET msg = ? ,complete='y',status=1 WHERE id = ? ;",(msg,msg_id))
 					self.db.run_sql("UPDATE pdus SET tmp_msg = Null WHERE msg_id = " + str(msg_id) +";")
 					sms_date, db_name=self.db.get_data_sql('SELECT date, phone_book_nickname FROM messages WHERE id = ' + str(msg_id) +";")[0]
-					new=[msg,datetime.datetime.strptime(sms_date, "%Y-%m-%d %H:%M:%S"), sms.SenderPhoneNumber,db_name]
+					new=[msg,sms_date, sms.SenderPhoneNumber,db_name]
 			else:
 				db_name=self.db.get_value_sql("SELECT nickname FROM phone_book WHERE phone_number='"+sms.SenderPhoneNumber+"';",True)
 				msg_id=self.db.insert_row_and_get_id("INSERT INTO messages (phone_number, date, complete, total_parts_number, reference_number, phone_book_nickname) VALUES (?,?,'n',?,?,?)",(sms.SenderPhoneNumber,date,sms.total_parts_number, sms.reference_number, db_name))
@@ -100,7 +99,7 @@ class SmsManager:
 					numbers=nicknames=None
 					if args.startswith(b'p:'):
 						index=args.find(b'\n')
-						numbers=args[2:index].decode("utf8")
+						numbers=args[2:index].decode("utf8").split(',')
 						args=args[index+1:]
 					if args.startswith(b'n:'):
 						index=args.find(b'\n')

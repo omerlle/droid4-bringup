@@ -7,8 +7,7 @@ import time
 from enum import Enum
 
 import argparse
-import datetime
-
+import utils.date_helper
 import modem.software.db_manager as sqlite_parser
 import modem.software.modem_helpers as helpers
 import modem.config.app_config as config
@@ -116,16 +115,16 @@ class Client():
 		limit="LIMIT "+str(length) if length else ""
 		if delete:self.db.run_sql('DELETE FROM messages ' + where + limit + ';')
 		else:
-#			print('SELECT '+fileds+' FROM messages INNER JOIN message_status ON message_status.id = messages.status'+where+';')
-			for id,phone_number,msg,phone_book_nickname, date, status in self.db.get_data_sql('SELECT '+fileds+' FROM messages INNER JOIN message_status ON message_status.id = messages.status' + where + limit + ';'):
+#			print('SELECT '+fileds+' FROM messages INNER JOIN message_status ON message_status.id = messages.status'+where+' ORDER BY voice_call_list.date DESC;')
+			for id,phone_number,msg,phone_book_nickname, date, status in self.db.get_data_sql('SELECT '+fileds+' FROM messages INNER JOIN message_status ON message_status.id = messages.status' + where +' ORDER BY date DESC '+  limit + ';'):
 				print("("+str(id)+")"+phone_number+":"+str(phone_book_nickname)+":"+date+":"+status+":"+msg)
 #			print('UPDATE messages SET status='+str(MessageStatus.READ.value) + where + ' AND status=' + str(MessageStatus.UNREAD.value) + limit + ';')
 			if mark: self.db.run_sql('UPDATE messages SET status='+str(MessageStatus.READ.value) + where + ' AND status=' + str(MessageStatus.UNREAD.value) +  limit + ';')
-	def show_phonebook(self, full=False,ids=[],phones=[],nicknames=[],subject=None,description=False,date=False):
-		fileds='id, phone_number, nickname, subject, description' if description else 'id, phone_number, nickname, subject'
+	def show_phonebook(self, full=False,ids=[],phones=[],names=[],nicknames=[],last_names=[],subject=None,description=False,date=False):
+		fileds='id, phone_number, nickname, first_name, last_name, subject, description' if description else 'id, phone_number, nickname, first_name, last_name, subject'
 		if date:fileds=fileds+', date'
 		where=""
-		if ids or phones or nicknames or subject:
+		if ids or phones or nicknames or subject or names or last_names:
 			sql_or=[]
 			if ids:sql_or.append("id IN ("+",".join(map(str,ids))+")")
 			if phones:
@@ -134,20 +133,24 @@ class Client():
 			if nicknames:
 				nickname_where="nickname IN ('"+"','".join(nicknames)+"')" if full else "nickname LIKE '" + "%' OR nickname LIKE '".join(nicknames)+"%'"
 				sql_or.append(nickname_where)
-			where=" WHERE (" + " OR ".join(sql_or) + ") AND" if sql_or and subject else " WHERE " + " OR ".join(sql_or)
-			if subject:where=where+" subject='"+subject+"'" if full else where+" subject LIKE '"+subject+"%'"
+			sql_and=[]
+			if names:sql_and.append("first_name IN ('"+"','".join(names)+"')" if full else "first_name LIKE '" + "%' OR first_name LIKE '".join(names)+"%'")
+			if last_names:sql_and.append("last_name IN ('"+"','".join(last_names)+"')" if full else "last_name LIKE '" + "%' OR last_name LIKE '".join(last_names)+"%'")
+			if subject:sql_and.append("subject='"+subject+"'" if full else "subject LIKE '"+subject+"%'")
+			if sql_and:sql_or.append("("+" AND ".join(sql_and)+")")
+			where=" WHERE " + " OR ".join(sql_or)
 		print('SELECT '+fileds+' FROM phone_book'+where+';')
 		for row in self.db.get_data_sql('SELECT '+fileds+' FROM phone_book'+where+';'):
 			print(":".join(map(str,row)))
-	def edit_phonebook(self, id, phone=None, nickname=None, subject=None, description=None, update_date=False):
+	def edit_phonebook(self, id, phone=None, name=None, nickname=None, last_name=None, subject=None, description=None, update_date=False):
 		sql_set=[]
 		if phone: sql_set.append("phone_number='"+phone+"'")
+		if nickname: sql_set.append("first_name='"+name+"'")
 		if nickname: sql_set.append("nickname='"+nickname+"'")
+		if nickname: sql_set.append("last_name='"+last_name+"'")
 		if subject: sql_set.append("subject='"+subject+"'")
 		if description: sql_set.append("description='"+description+"'")
-		if update_date:
-			date=datetime.datetime.today()
-			sql_set.append("date='"+str(dates.HebrewDate.from_pydate(date))+","+date.strftime("%H:%M:%S")+"'")
+		if update_date:sql_set.append("date='"+date_helper.date_to_string()+"'")
 		self.db.run_sql('UPDATE phone_book SET '+ ",".join(sql_set) + ' WHERE id=' + str(id) + ';')
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description='cli for droid4_modem.')
@@ -190,15 +193,19 @@ if __name__ == '__main__':
 	del_phonebook_parser.add_argument('-n','--nickname', help="subject and nickname", action='store', nargs=2)
 	del_phonebook_parser.set_defaults(action="del")
 	add_phonebook_parser = phonebook_subparsers.add_parser('add', help='add new nickname to phonebook')
-	add_phonebook_parser.add_argument('nickname', help="nickname to add", action='store')
+	add_phonebook_parser.add_argument('name', help="name to add", action='store')
 	add_phonebook_parser.add_argument('phone', help="phone to add", action='store')
+	add_phonebook_parser.add_argument('-n','--nickname', help="add nickname field", action='store')
+	add_phonebook_parser.add_argument('-l','--lastname', help="add last name field", action='store')
 	add_phonebook_parser.add_argument('-s','--subject', help="add subject field", action='store')
 	add_phonebook_parser.add_argument('-d','--description',help="add description field", action='store')
 	add_phonebook_parser.set_defaults(action="add")
 	edit_phonebook_parser = phonebook_subparsers.add_parser('edit', help='edit phonebook')
 	edit_phonebook_parser.add_argument('id', help="row id for edit", action='store', type=int)
 	edit_phonebook_parser.add_argument('-p','--phone', help="edit phone", action='store')
-	edit_phonebook_parser.add_argument('-n','--nickname', help="edit nickname", action='store')
+	edit_phonebook_parser.add_argument('-k','--nickname', help="edit nickname", action='store')
+	edit_phonebook_parser.add_argument('-l','--lastname', help="edit last name", action='store')
+	edit_phonebook_parser.add_argument('-n','--name', help="edit name", action='store')
 	edit_phonebook_parser.add_argument('-s','--subject', help="edit subject", action='store')
 	edit_phonebook_parser.add_argument('-d','--description',help="edit description", action='store')
 	edit_phonebook_parser.add_argument('-t','--time',help="update date field", action='store_true')
@@ -208,7 +215,9 @@ if __name__ == '__main__':
 	show_phonebook_parser.add_argument('-d','--description',help="show description field", action='store_true')
 	show_phonebook_parser.add_argument('-t','--time',help="show update time field", action='store_true')
 	show_phonebook_parser.add_argument('-p','--phone', help="show phonebook with phones", default=[], dest='phones', action='append')
-	show_phonebook_parser.add_argument('-n','--nickname', help="show phonebook with names", default=[], dest='nicknames', action='append')
+	show_phonebook_parser.add_argument('-n','--name', help="show phonebook with names", default=[], dest='names', action='append')
+	show_phonebook_parser.add_argument('-k','--nickname', help="show phonebook with nicknames", default=[], dest='nicknames', action='append')
+	show_phonebook_parser.add_argument('-l','--lastname', help="show phonebook with last names", default=[], dest='lastnames', action='append')
 	show_phonebook_parser.add_argument('-s','--subject', help="show subject that start with the pattern", action='store')
 	show_phonebook_parser.add_argument('-f','--full', help="show only full pattern", action='store_true')
 	show_phonebook_parser.set_defaults(action="show")
@@ -250,9 +259,14 @@ if __name__ == '__main__':
 				elif args.phone:cel_modem.db.run_sql("DELETE FROM phone_book WHERE phone_number = '" + args.phone + "';")
 				elif args.nickname:cel_modem.db.run_sql("DELETE FROM phone_book WHERE subject = '" + args.nickname[0] + "' and nickname ='"+args.nickname[1]+"' ;")
 			elif args.action == 'add':
-				date=datetime.datetime.today()
-				prefix="INSERT INTO phone_book (date, phone_number, nickname"
-				suffix=") VALUES('"+str(dates.HebrewDate.from_pydate(date))+","+date.strftime("%H:%M:%S")+"','"+args.phone+"','"+args.nickname+"'"
+				prefix="INSERT INTO phone_book (date, phone_number, first_name"
+				suffix=") VALUES('"+date_helper.date_to_string()+"','"+args.phone+"','"+args.name+"'"
+				if args.nickname:
+					prefix=prefix+",nickname"
+					suffix=suffix+",'"+args.nickname+"'"
+				if args.lastname:
+					prefix=prefix+",last_name"
+					suffix=suffix+",'"+args.lastname+"'"
 				if args.subject:
 					prefix=prefix+",subject"
 					suffix=suffix+",'"+args.subject+"'"
@@ -260,8 +274,8 @@ if __name__ == '__main__':
 					prefix=prefix+",description"
 					suffix=suffix+",'"+args.description+"'"
 				cel_modem.db.run_sql(prefix+suffix+");")
-			elif args.action == 'show':cel_modem.show_phonebook(args.full,args.ids,args.phones,args.nicknames,args.subject,args.description,args.time)
-			elif args.action == 'edit':cel_modem.edit_phonebook(args.id, args.phone, args.nickname, args.subject, args.description, args.time)
+			elif args.action == 'show':cel_modem.show_phonebook(args.full,args.ids,args.phones,args.names,args.nicknames,args.lastnames,args.subject,args.description,args.time)
+			elif args.action == 'edit':cel_modem.edit_phonebook(args.id, args.phone, args.name, args.nickname, args.lastname, args.subject, args.description, args.time)
 			else:print("error:bad cmd-"+args.action)
 		else:print("error:bad cmd-"+args.cmd)
 	if args.quit:cel_modem.quit_modem()

@@ -45,9 +45,9 @@ class SmsSender:
 	def send(self,pdus,date):
 		config.SMS_SEND_DEV="/dev/motmdm3"
 		logging.debug(pdus)
-		msg_id=self.db.insert_row_and_get_id('INSERT INTO messages (msg, phone_number, date, phone_book_nickname,status,total_parts_number,complete) VALUES (?,?,?,?,?,?,?)',(pdus.message,pdus.phone,date.strftime("%Y-%m-%d %H:%M:%S"),pdus.nickname,MessageStatus.SEND_FAIL.value,len(pdus.tpdus),'n'))
+		msg_id=self.db.insert_row_and_get_id('INSERT INTO messages (msg, phone_number, date, phone_book_nickname,status,total_parts_number,complete) VALUES (?,?,?,?,?,?,?)',(pdus.message,pdus.phone,date,pdus.nickname,MessageStatus.SEND_FAIL.value,len(pdus.tpdus),'n'))
 		succses=True
-		i=0
+		i=1
 		for line in pdus.tpdus:
 			logging.debug(line)
 			modem_read = open(config.SMS_SEND_DEV,"r")
@@ -58,8 +58,8 @@ class SmsSender:
 				dev.write(line + '\x1a')
 			ans=self.check_output(modem_read,-1)
 			if ans == None:succses=False
-			else:self.db.run_sql('INSERT INTO pdus (pdu, date, msg_id, sequence_part_number, tmp_msg) VALUES (?,?,?,?,?)',(line, date.strftime("%Y-%m-%d %H:%M:%S"), msg_id, i, ans))
-			i=i+i
+			else:self.db.run_sql('INSERT INTO pdus (pdu, date, msg_id, sequence_part_number, tmp_msg) VALUES (?,?,?,?,?)',(str(msg_id)+':'+str(i)+':'+line, date, msg_id, i, ans))
+			i=i+1
 			#self.check_output(modem_read,2)
 		if succses:self.db.run_sql("UPDATE messages SET status = ? ,complete='y' WHERE id = ? ;",(MessageStatus.SEND.value,msg_id))	
 	def run(self):

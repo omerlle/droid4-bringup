@@ -5,7 +5,7 @@ import logging
 import select
 import threading
 import queue
-import datetime
+import utils.date_helper
 from enum import Enum
 import config.app_config as config
 import software.mamagers_client as clients
@@ -102,7 +102,7 @@ class ModemManager:
 				logging.error(traceback.format_exc())
 	def update_db_with_conversation(self,status):
 		if self.last_call:
-			self.db.run_sql('INSERT INTO voice_call_list (phone,date,status) VALUES(?,?,?)',(self.last_call, datetime.datetime.today().strftime("%Y-%m-%d %H:%M:%S"), status));
+			self.db.run_sql('INSERT INTO voice_call_list (phone,date,status) VALUES(?,?,?)',(self.last_call, date_helper.date_to_string(), status));
 			self.last_call = None
 	def run(self):
 		logging.debug('run...')
