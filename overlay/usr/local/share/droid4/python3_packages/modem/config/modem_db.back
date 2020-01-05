@@ -1,6 +1,6 @@
 PRAGMA foreign_keys=ON;
 BEGIN TRANSACTION;
-CREATE TABLE phone_book (id INTEGER PRIMARY KEY AUTOINCREMENT, phone_number VARCHAR(10) not null unique, nickname text not null,subject text, description text, date text CHECK (date IS datetime(date)), unique(nickname,subject));
+CREATE TABLE phone_book (id INTEGER PRIMARY KEY AUTOINCREMENT, phone_number VARCHAR(10) not null unique, nickname text unique, first_name text not null, last_name text, subject text, description text, date text CHECK (date IS datetime(date)), unique(first_name,last_name,subject));
 CREATE TABLE message_status(id INTEGER PRIMARY KEY, name VARCHAR(10) not null);
 INSERT INTO message_status VALUES(1,'unread');
 INSERT INTO message_status VALUES(2,'read');
