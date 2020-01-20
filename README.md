@@ -111,7 +111,8 @@ run chroot to config the rootfs on pc:<br>
 install useful packages:<br>
 <code>apk update<br>
 apk upgrade<br>
-apk add bash openrc udev openssh python3 alsa-utils util-linux rsync xorg-server xinit i3wm evince xterm tmux eog linux-headers build-base python3-dev sqlite kbd libqmi emacs<br>
+apk add bash openrc udev openssh python3 alsa-utils util-linux rsync xorg-server xinit i3wm evince xterm tmux eog linux-headers build-base python3-dev sqlite kbd libqmi emacs linux-firmware wpa_supplicant bluez wireless-tools<br>
+pip3 install --upgrade pip<br>
 pip3 install evdev</code><br>
 config network:<br>
 <code>echo droid4 > /etc/hostname<br>
@@ -141,6 +142,8 @@ exit from chroot:<br>
 unmount /proc and /dev from the rootfs:<br>
 <code>sudo umount ${droid_rootfs}/dev<br>
 sudo umount ${droid_rootfs}/proc</code><br>
+add TIInit_10.6.15 to the rootfs:<br>
+<code>wget -c https://github.com/TI-ECS/bt-firmware/raw/master/TIInit_10.6.15.bts -P ${droid_rootfs}/lib/firmware/ti-connectivity</code><br>
 
 <h3>create bootable sd</h3>
 format the sdcard:<br>
@@ -177,7 +180,12 @@ save and umount the second partition of sdcard and mount the third partition:<br
 sudo umount mnt<br>
 sudo mount /dev/${sdcard}p3 mnt</code><br>
 copy the rootfs to the third partition:<br>
+<<<<<<< HEAD
 <code>sudo install -d mnt/droid4/modem/{dynamic_data,logs}<br>
+=======
+<code>install -d mnt/droid4/modem/{dynamic_data,logs}<br>
+mkdir -p mnt/droid4/buttons/logs/ mnt/droid4/power/logs/<br>
+>>>>>>> 7679987... ALPINE_BRINGUP_GUIDE:
 sudo mv ${droid_rootfs}/tmp/modem.db mnt/droid4/modem/dynamic_data/</code><br>
 save and umount the third partition:<br>
 <code>sync<br>

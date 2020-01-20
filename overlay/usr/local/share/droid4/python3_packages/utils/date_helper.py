@@ -13,3 +13,4 @@ def date_to_string(now=None,format=DateStringFormat.DB):
 	if format==DateStringFormat.DB:string=now.strftime("%Y-%m-%d %H:%M:%S")
 	elif format==DateStringFormat.FILENAME:string=now.strftime("%Y-%m-%d-%H-%M-%S")
 	else: DateError('bad format:"'+str(format)+"'")
+	return string

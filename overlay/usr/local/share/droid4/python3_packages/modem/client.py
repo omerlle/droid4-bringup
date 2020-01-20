@@ -120,9 +120,7 @@ class Client():
 				print("("+str(id)+")"+phone_number+":"+str(phone_book_nickname)+":"+date+":"+status+":"+msg)
 #			print('UPDATE messages SET status='+str(MessageStatus.READ.value) + where + ' AND status=' + str(MessageStatus.UNREAD.value) + limit + ';')
 			if mark: self.db.run_sql('UPDATE messages SET status='+str(MessageStatus.READ.value) + where + ' AND status=' + str(MessageStatus.UNREAD.value) +  limit + ';')
-	def show_phonebook(self, full=False,ids=[],phones=[],names=[],nicknames=[],last_names=[],subject=None,description=False,date=False):
-		fileds='id, phone_number, nickname, first_name, last_name, subject, description' if description else 'id, phone_number, nickname, first_name, last_name, subject'
-		if date:fileds=fileds+', date'
+	def show_phonebook(self, fileds, full=False,ids=[],phones=[],names=[],nicknames=[],last_names=[],subject=None,print_data=True):
 		where=""
 		if ids or phones or nicknames or subject or names or last_names:
 			sql_or=[]
@@ -139,9 +137,12 @@ class Client():
 			if subject:sql_and.append("subject='"+subject+"'" if full else "subject LIKE '"+subject+"%'")
 			if sql_and:sql_or.append("("+" AND ".join(sql_and)+")")
 			where=" WHERE " + " OR ".join(sql_or)
-		print('SELECT '+fileds+' FROM phone_book'+where+';')
-		for row in self.db.get_data_sql('SELECT '+fileds+' FROM phone_book'+where+';'):
-			print(":".join(map(str,row)))
+#		print('SELECT '+fileds+' FROM phone_book'+where+';')
+		ans = self.db.get_data_sql('SELECT '+fileds+' FROM phone_book'+where+';')
+		if print_data:
+			for row in ans:
+				print(":".join(map(str,row)))
+		else: return None if not ans else ans[0][0]
 	def edit_phonebook(self, id, phone=None, name=None, nickname=None, last_name=None, subject=None, description=None, update_date=False):
 		sql_set=[]
 		if phone: sql_set.append("phone_number='"+phone+"'")
@@ -274,7 +275,10 @@ if __name__ == '__main__':
 					prefix=prefix+",description"
 					suffix=suffix+",'"+args.description+"'"
 				cel_modem.db.run_sql(prefix+suffix+");")
-			elif args.action == 'show':cel_modem.show_phonebook(args.full,args.ids,args.phones,args.names,args.nicknames,args.lastnames,args.subject,args.description,args.time)
+			elif args.action == 'show':
+				fileds='id, phone_number, nickname, first_name, last_name, subject, description' if args.description else 'id, phone_number, nickname, first_name, last_name, subject'
+				if args.time:fileds=fileds+', date'
+				cel_modem.show_phonebook(fileds.args.full,args.ids,args.phones,args.names,args.nicknames,args.lastnames,args.subject)
 			elif args.action == 'edit':cel_modem.edit_phonebook(args.id, args.phone, args.name, args.nickname, args.lastname, args.subject, args.description, args.time)
 			else:print("error:bad cmd-"+args.action)
 		else:print("error:bad cmd-"+args.cmd)
