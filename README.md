@@ -11,7 +11,7 @@ you need also a micro-USB-B breakout board and USB-TTL Adapter with 3.3V signal-
 go to the path that you want  to create the project(replace "/path/to/project/" with the path):<br>
 <code>pushd /path/to/project/</code><br>
 create directory hierarchy structure for boot components:<br>
-<code>install -d bringup/{linux/{linux-stable,images},mnt,archives/{stock_rom/droid4,kexecboot/droid4,buildroot,basic_rootfs/{ubuntu-base,alpine}},mnt,rootfs/{alpine,ubuntu,buildroot}}</code><br>
+<code>install -d bringup/{linux/{linux-stable,images},mnt,archives/{stock_rom/droid4,kexecboot/droid4,buildroot,firmware,basic_rootfs/{ubuntu-base,alpine}},mnt,rootfs/{alpine,ubuntu,buildroot}}</code><br>
 go into bringup directory:<br>
 <code>cd bringup</code><br>
 <h3>update stock rom</h3>
@@ -69,12 +69,12 @@ clone upstream repository:<br>
 go into linux-stable:<br>
 <code>pushd linux/linux-stable</code><br>
 checkout the latest stable kernel branch(you can see the tag via "<code>git tag -l</code>")<br>
-<code>git checkout -b local/v5.4.2 v5.4.2</code><br>
+<code>git checkout -b local/v5.4.13 v5.4.13</code><br>
 fetch Tony Lindgren repository for voice calls and gnss serdev driver patches:<br>
 <code>git remote add linux-omap git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git<br>
 git fetch linux-omap</code><br>
 merge mdm branch:<br>
-<code>git merge linux-omap/droid4-pending-v5.4 -m "Merge remote-tracking branch 'linux-omap/droid4-pending-v5.4' into local/v5.4.2"</code><br>
+<code>git merge linux-omap/droid4-pending-v5.4 -m "Merge remote-tracking branch 'linux-omap/droid4-pending-v5.4' into local/v5.4.13"</code><br>
 setup your default kernel configuration:<br>
 <code>make ARCH=arm omap2plus_defconfig</code><br>
 compaile the kernel:<br>
@@ -89,16 +89,18 @@ return to base directory by:<br>
 install qemu-user-static arm emulator:<br>
 <code>sudo apt-get install qemu-user-static</code><br>
 download the alpine minimal rootfs archive:<br>
-<code>wget -P archives/basic_rootfs/alpine/ -c http://dl-cdn.alpinelinux.org/alpine/v3.10/releases/armv7/alpine-minirootfs-3.10.3-armv7.tar.gz</code><br>
+<code>wget -P archives/basic_rootfs/alpine/ -c http://dl-cdn.alpinelinux.org/alpine/v3.11/releases/armv7/alpine-minirootfs-3.11.3-armv7.tar.gz</code><br>
 clone bringup repository for droid4 more rootfs scripts:<br>
 <code>git clone https://github.com/omerlle/droid4-bringup.git archives/droid4_bringup</code><br>
 checkout the alpine branch:<br>
 <code>git -C archives/droid4_bringup/ checkout alpine</code><br>
+download bluetooth firmware:<br>
+<code>wget -c https://github.com/TI-ECS/bt-firmware/raw/master/TIInit_10.6.15.bts -P archives/firmware/ti-connectivity</code><br>
 choose name to rootfs directory and create it:<br>
-<code>droid_rootfs="$PWD/rootfs/alpine/3.10.3_armv7"<br>
+<code>droid_rootfs="$PWD/rootfs/alpine/3.11.3_armv7"<br>
 mkdir ${droid_rootfs}</code><br>
 extract alpine minimal rootfs into the directory:<br>
-<code>sudo tar -xzf archives/basic_rootfs/alpine/alpine-minirootfs-3.10.3-armv7.tar.gz -C ${droid_rootfs}/</code><br>
+<code>sudo tar -xzf archives/basic_rootfs/alpine/alpine-minirootfs-3.11.3-armv7.tar.gz -C ${droid_rootfs}/</code><br>
 add usage scripts:<br>
 <code>sudo rsync -a --chown=root:root archives/droid4_bringup/overlay/ ${droid_rootfs}</code><br>
 add files and mount some directories for chroot work properly:<br>
@@ -142,8 +144,8 @@ exit from chroot:<br>
 unmount /proc and /dev from the rootfs:<br>
 <code>sudo umount ${droid_rootfs}/dev<br>
 sudo umount ${droid_rootfs}/proc</code><br>
-add TIInit_10.6.15 to the rootfs:<br>
-<code>wget -c https://github.com/TI-ECS/bt-firmware/raw/master/TIInit_10.6.15.bts -P ${droid_rootfs}/lib/firmware/ti-connectivity</code><br>
+copy TIInit_10.6.15 to the rootfs:<br>
+<code>sudo cp archives/firmware/ti-connectivity/TIInit_10.6.15.bts ${droid_rootfs}/lib/firmware/ti-connectivity/</code><br>
 
 <h3>create bootable sd</h3>
 format the sdcard:<br>
@@ -155,8 +157,8 @@ when you are sure what the name of the sd replace the "mmcblk0" keyword with you
 set -u<br>
 mount | grep /dev/$sdcard | cut -d ' ' -f 3 | xargs umount<br>
 echo "1 : start=        2048, size=     102400, type=83<br>
-2 : start=        104448, size=     2097152, type=83<br>
-3 : start=     2201600, size=     $(($(cat /sys/block/$sdcard/size)-2201600)), type=83" | sudo sfdisk /dev/$sdcard<br>
+2 : start=        104448, size=     4194304, type=83<br>
+3 : start=     4298752, size=     $(($(cat /sys/block/$sdcard/size)-4298752)), type=83" | sudo sfdisk /dev/$sdcard<br>
 sudo partprobe /dev/mmcblk0<br>
 sudo mkfs.vfat /dev/${sdcard}p1 -n BOOT<br>
 sudo mkfs.ext4 /dev/${sdcard}p2 -L rootfs<br>
@@ -182,10 +184,6 @@ sudo mount /dev/${sdcard}p3 mnt</code><br>
 copy the rootfs to the third partition:<br>
 <<<<<<< HEAD
 <code>sudo install -d mnt/droid4/modem/{dynamic_data,logs}<br>
-=======
-<code>install -d mnt/droid4/modem/{dynamic_data,logs}<br>
-mkdir -p mnt/droid4/buttons/logs/ mnt/droid4/power/logs/<br>
->>>>>>> 7679987... ALPINE_BRINGUP_GUIDE:
 sudo mv ${droid_rootfs}/tmp/modem.db mnt/droid4/modem/dynamic_data/</code><br>
 save and umount the third partition:<br>
 <code>sync<br>
