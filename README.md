@@ -159,7 +159,7 @@ mount | grep /dev/$sdcard | cut -d ' ' -f 3 | xargs umount<br>
 echo "1 : start=        2048, size=     102400, type=83<br>
 2 : start=        104448, size=     4194304, type=83<br>
 3 : start=     4298752, size=     $(($(cat /sys/block/$sdcard/size)-4298752)), type=83" | sudo sfdisk /dev/$sdcard<br>
-sudo partprobe /dev/mmcblk0<br>
+sudo partprobe /dev/${sdcard}<br>
 sudo mkfs.vfat /dev/${sdcard}p1 -n BOOT<br>
 sudo mkfs.ext4 /dev/${sdcard}p2 -L rootfs<br>
 sudo mkfs.vfat /dev/${sdcard}p3 -n USER_DATA<br>
