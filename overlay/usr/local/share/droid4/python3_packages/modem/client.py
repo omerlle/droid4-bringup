@@ -7,7 +7,7 @@ import time
 from enum import Enum
 
 import argparse
-import utils.date_helper
+import utils.date_helper as date_helper
 import modem.software.db_manager as sqlite_parser
 import modem.software.modem_helpers as helpers
 import modem.config.app_config as config
@@ -191,7 +191,7 @@ if __name__ == '__main__':
 	del_phonebook_parser = phonebook_subparsers.add_parser('del', help='delete from phonebook').add_mutually_exclusive_group()
 	del_phonebook_parser.add_argument('-i','--id', help="row id", action='store', type=int)
 	del_phonebook_parser.add_argument('-p','--phone', help="phone", action='store')
-	del_phonebook_parser.add_argument('-n','--nickname', help="subject and nickname", action='store', nargs=2)
+	del_phonebook_parser.add_argument('-n','--nickname', help="nickname", action='store')
 	del_phonebook_parser.set_defaults(action="del")
 	add_phonebook_parser = phonebook_subparsers.add_parser('add', help='add new nickname to phonebook')
 	add_phonebook_parser.add_argument('name', help="name to add", action='store')
@@ -258,7 +258,7 @@ if __name__ == '__main__':
 			if args.action == 'del':
 				if args.id:cel_modem.db.run_sql('DELETE FROM phone_book WHERE id = ' + str(args.id) + ';')
 				elif args.phone:cel_modem.db.run_sql("DELETE FROM phone_book WHERE phone_number = '" + args.phone + "';")
-				elif args.nickname:cel_modem.db.run_sql("DELETE FROM phone_book WHERE subject = '" + args.nickname[0] + "' and nickname ='"+args.nickname[1]+"' ;")
+				elif args.nickname:cel_modem.db.run_sql("DELETE FROM phone_book WHERE nickname ='"+args.nickname+"' ;")
 			elif args.action == 'add':
 				prefix="INSERT INTO phone_book (date, phone_number, first_name"
 				suffix=") VALUES('"+date_helper.date_to_string()+"','"+args.phone+"','"+args.name+"'"
@@ -278,7 +278,7 @@ if __name__ == '__main__':
 			elif args.action == 'show':
 				fileds='id, phone_number, nickname, first_name, last_name, subject, description' if args.description else 'id, phone_number, nickname, first_name, last_name, subject'
 				if args.time:fileds=fileds+', date'
-				cel_modem.show_phonebook(fileds.args.full,args.ids,args.phones,args.names,args.nicknames,args.lastnames,args.subject)
+				cel_modem.show_phonebook(fileds,args.full,args.ids,args.phones,args.names,args.nicknames,args.lastnames,args.subject)
 			elif args.action == 'edit':cel_modem.edit_phonebook(args.id, args.phone, args.name, args.nickname, args.lastname, args.subject, args.description, args.time)
 			else:print("error:bad cmd-"+args.action)
 		else:print("error:bad cmd-"+args.cmd)

@@ -2,7 +2,7 @@
 
 import logging
 
-import utils.date_helper
+import utils.date_helper as date_helper
 
 import software.mamagers_client as clients
 import config.app_config as config
@@ -15,7 +15,7 @@ __email__ = "omerlle@gmail.com"
 
 if __name__ == '__main__':
 	stop = False
-	logging.basicConfig(filename=config.LOG_PATH_PREFIX+utils.date_helper.date_to_string(format=utils.date_helper.DateStringFormat.FILENAME)+'_modem_app.log',level=logging.DEBUG,format='[%(levelname)s:%(filename)s:%(funcName)s:%(lineno)d:(%(threadName)-10s)]:%(asctime)s|%(message)s',)
+	logging.basicConfig(filename=config.LOG_PATH_PREFIX+date_helper.date_to_string(format=date_helper.DateStringFormat.FILENAME)+'_modem_app.log',level=logging.DEBUG,format='[%(levelname)s:%(filename)s:%(funcName)s:%(lineno)d:(%(threadName)-10s)]:%(asctime)s|%(message)s',)
 	logging.getLogger('shiloch_phone.shiloch_phone.Manager')
 
 	server = server_manager.ModemServer()

@@ -9,7 +9,7 @@ import string
 import traceback
 import logging
 import threading
-import utils.date_helper
+import utils.date_helper as date_helper
 import math
 import hardware.led_handler as leds_handler
 import hardware.vibrator as vibrator
@@ -59,7 +59,7 @@ class SmsManager:
 		new=None
 		sms = pdu.PDUReceive(msg)
 		adv=str(sms.reference_number)+","+str(sms.sequence_part_number)+"/"+str(sms.total_parts_number) if sms.total_parts_number > 1 else "1/1"
-		logging.debug(sms.tpdu+","+sms.SenderPhoneNumber+","+date+","+sms.msg+","+adv)
+		logging.debug(sms.tpdu+","+sms.SenderPhoneNumber+","+sms.ServiceCenterDateStamp+","+sms.msg+","+adv)
 		if sms.total_parts_number == 1:
 			db_name=self.db.get_value_sql("SELECT nickname FROM phone_book WHERE phone_number='"+sms.SenderPhoneNumber+"';",True)
 			msg_id=self.db.insert_row_and_get_id('INSERT INTO messages (msg, phone_number, date, phone_book_nickname) VALUES (?,?,?,?)',(sms.msg,sms.SenderPhoneNumber,sms.ServiceCenterDateStamp,db_name))
@@ -79,8 +79,8 @@ class SmsManager:
 					new=[msg,sms_date, sms.SenderPhoneNumber,db_name]
 			else:
 				db_name=self.db.get_value_sql("SELECT nickname FROM phone_book WHERE phone_number='"+sms.SenderPhoneNumber+"';",True)
-				msg_id=self.db.insert_row_and_get_id("INSERT INTO messages (phone_number, date, complete, total_parts_number, reference_number, phone_book_nickname) VALUES (?,?,'n',?,?,?)",(sms.SenderPhoneNumber,date,sms.total_parts_number, sms.reference_number, db_name))
-				self.db.run_sql("INSERT INTO pdus (pdu, date, msg_id, sequence_part_number, tmp_msg) VALUES (?,?,?,?,?)",(sms.tpdu, date, msg_id, sms.sequence_part_number, sms.msg))
+				msg_id=self.db.insert_row_and_get_id("INSERT INTO messages (phone_number, date, complete, total_parts_number, reference_number, phone_book_nickname) VALUES (?,?,'n',?,?,?)",(sms.SenderPhoneNumber,sms.ServiceCenterDateStamp,sms.total_parts_number, sms.reference_number, db_name))
+				self.db.run_sql("INSERT INTO pdus (pdu, date, msg_id, sequence_part_number, tmp_msg) VALUES (?,?,?,?,?)",(sms.tpdu, sms.ServiceCenterDateStamp, msg_id, sms.sequence_part_number, sms.msg))
 		return new
 	def run(self):
 		logging.debug('run...')

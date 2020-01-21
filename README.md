@@ -11,7 +11,7 @@ you need also a micro-USB-B breakout board and USB-TTL Adapter with 3.3V signal-
 go to the path that you want  to create the project(replace "/path/to/project/" with the path):<br>
 <code>pushd /path/to/project/</code><br>
 create directory hierarchy structure for boot components:<br>
-<code>install -d bringup/{linux/{linux-stable,images},mnt,archives/{stock_rom/droid4,kexecboot/droid4,buildroot,basic_rootfs/{ubuntu-base,alpine}},mnt,rootfs/{alpine,ubuntu,buildroot}}</code><br>
+<code>install -d bringup/{linux/{linux-stable,images},mnt,archives/{stock_rom/droid4,kexecboot/droid4,buildroot,firmware,basic_rootfs/{ubuntu-base,alpine}},mnt,rootfs/{alpine,ubuntu,buildroot}}</code><br>
 go into bringup directory:<br>
 <code>cd bringup</code><br>
 <h3>update stock rom</h3>
@@ -69,12 +69,12 @@ clone upstream repository:<br>
 go into linux-stable:<br>
 <code>pushd linux/linux-stable</code><br>
 checkout the latest stable kernel branch(you can see the tag via "<code>git tag -l</code>")<br>
-<code>git checkout -b local/v5.4.2 v5.4.2</code><br>
+<code>git checkout -b local/v5.4.13 v5.4.13</code><br>
 fetch Tony Lindgren repository for voice calls and gnss serdev driver patches:<br>
 <code>git remote add linux-omap git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git<br>
 git fetch linux-omap</code><br>
 merge mdm branch:<br>
-<code>git merge linux-omap/droid4-pending-v5.4 -m "Merge remote-tracking branch 'linux-omap/droid4-pending-v5.4' into local/v5.4.2"</code><br>
+<code>git merge linux-omap/droid4-pending-v5.4 -m "Merge remote-tracking branch 'linux-omap/droid4-pending-v5.4' into local/v5.4.13"</code><br>
 setup your default kernel configuration:<br>
 <code>make ARCH=arm omap2plus_defconfig</code><br>
 compaile the kernel:<br>
@@ -99,8 +99,8 @@ when you are sure what the name of the sd replace the "mmcblk0" keyword with you
 set -u<br>
 mount | grep /dev/$sdcard | cut -d ' ' -f 3 | xargs umount<br>
 echo "1 : start=        2048, size=     102400, type=83<br>
-2 : start=        104448, size=     2097152, type=83<br>
-3 : start=     2201600, size=     $(($(cat /sys/block/$sdcard/size)-2201600)), type=83" | sudo sfdisk /dev/$sdcard<br>
+2 : start=        104448, size=     4194304, type=83<br>
+3 : start=     4298752, size=     $(($(cat /sys/block/$sdcard/size)-4298752)), type=83" | sudo sfdisk /dev/$sdcard<br>
 sudo partprobe /dev/mmcblk0<br>
 sudo mkfs.vfat /dev/${sdcard}p1 -n BOOT<br>
 sudo mkfs.ext4 /dev/${sdcard}p2 -L rootfs<br>
@@ -124,7 +124,7 @@ save and umount the second partition of sdcard and mount the third partition:<br
 sudo umount mnt<br>
 sudo mount /dev/${sdcard}p3 mnt</code><br>
 copy the rootfs to the third partition:<br>
-<code>install -d mnt/droid4/modem/{dynamic_data,logs}<br>
+<code>sudo install -d mnt/droid4/modem/{dynamic_data,logs}<br>
 sudo mv ${droid_rootfs}/tmp/modem.db mnt/droid4/modem/dynamic_data/</code><br>
 save and umount the third partition:<br>
 <code>sync<br>

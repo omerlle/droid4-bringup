@@ -2,7 +2,9 @@ import software.modem_helpers as helpers
 import logging
 import string
 import math
-import utils.date_helper
+import datetime
+
+import utils.date_helper as date_helper
 gsm_byte_to_char = (u"@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞ\x1bÆæßÉ !\"#¤%&'()*+,-./0123456789:;<=>?¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ`¿abcdefghijklmnopqrstuvwxyzäöñüà")
 gsm_special={10:'0x0C',20:'^',40:'{',41:'}',47:'\\',60:'[',61:'~',62:']',64:'|',101:'€'}
 gsm_special_chars={'0x0C':10,'^':20,'{':40,'}':41,'\\':47,'[':60,'~':61,']':62,'|':64,'€':101}
