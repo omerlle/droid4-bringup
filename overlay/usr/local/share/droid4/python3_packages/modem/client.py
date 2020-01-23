@@ -45,7 +45,7 @@ class Client():
 	def send_sms(self,message, phones=None, nicknames=None):
 		msg="send\n"
 		if phones:msg=msg+'p:'+",".join(phones)+"\n"
-		if args.nicknames:msg=msg+'n:'+",".join(nicknames)+"\n"
+		if nicknames:msg=msg+'n:'+",".join(nicknames)+"\n"
 		msg=msg+'m:'+message
 #	       print(msg)
 		self.send(msg)
