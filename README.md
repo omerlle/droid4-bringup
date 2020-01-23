@@ -15,18 +15,15 @@ create directory hierarchy structure for boot components:<br>
 go into bringup directory:<br>
 <code>cd bringup</code><br>
 <h3>update stock rom</h3>
-<p>this part is also describe in Sebastian Reichel blog in <a href="http://elektranox.org/2017/02/0009-droid-4-root/">
-elektranox.org</a></p>
 first of all we need to update the stock rom to VRZ_XT894_9.8.2O-72_VZW-18-8_CFC.xml.zip.<br>
 for that we need fastboot, if you don't have fastboot you can install it by:<br>
 <code>sudo apt-get install android-tools-fastboot</code><br>
-you can download VRZ_XT894_9.8.2O-72_VZW-18-8_CFC.xml.zip from <a href="https://mega.nz/#F!5UZAGQbb!QItoPY1oIS-pu3JJIBmxJw!gUR3hBZK">
-mega.nz</a>(you can find more site in <a href="https://forum.xda-developers.com/droid-4/general/droid-4-xt894-firmware-mirrors-2015-t3004048">
-forum.xda-developers.com</a>) extract it into droid4/archives/stock_rom<br>
-after download you can use the command(you can replace "~/Downloads" in your download path):<br>
-<code>unzip ~/Downloads/VRZ_XT894_9.8.2O-72_VZW-18-8_CFC.xml.zip -d archives/stock_rom/droid4</code><br>
+download and extract VRZ_XT894_9.8.2O-72_VZW-18-8_CFC.xml.zip into droid4/archives/stock_rom:<br>
+<code>wget https://maedevu.maemo.org/images/droid4/VRZ_XT894_9.8.2O-72_VZW-18-8_CFC.xml.zip -P archives/stock_rom/droid4<br>
+unzip archives/stock_rom/droid4/VRZ_XT894_9.8.2O-72_VZW-18-8_CFC.xml.zip -d archives/stock_rom/droid4<br>
+rm archives/stock_rom/droid4/VRZ_XT894_9.8.2O-72_VZW-18-8_CFC.xml.zip</code><br>
 download Tony Lindgren script for update the stock_rom:<br>
-<code>wget -P archives/stock_rom/droid4 -c http://elektranox.org/files/flash-droid-4-fw.sh</code><br>
+<code>wget -P archives/stock_rom/droid4 -c wget https://raw.githubusercontent.com/omerlle/droid4-bringup/alpine/boot/flash-droid-4-fw.sh</code><br>
 turn on the device by press on Vol Down & Power buttons this will go into Fastboot mode(the first line in the screen is:"AP Fastboot Flash Mode (S)") <br>
 connect the device to the computer via usb and make sure the bottom lines are "Transfer Mode: USB Connected"<br>
 make sure you see the device by the command:<br>
@@ -52,10 +49,10 @@ if you don't have git you can install it by:<br>
 clone Tony Lindgren repository for droid4 kexecboot by the command:<br>
 <code>git clone https://github.com/tmlind/droid4-kexecboot.git archives/kexecboot/droid4/</code><br>
 install the Kexecboot by the commands(you can remove sudo keyword if you don't need sudo for fastboot)[my current version is 2018-05-06]:<br>
-<code>sudo fastboot flash mbm archives/stock_rom/droid4/VRZ_XT894_9.8.2O-72_VZW-18-8_CFC.xml/allow-mbmloader-flashing-mbm.bin<br>
-sudo fastboot reboot bootloader<br>
-sudo fastboot flash bpsw archives/kexecboot/droid4/current/droid4-kexecboot.img<br>
-sudo fastboot flash utags archives/kexecboot/droid4/utags-mmcblk1p13.bin<br>
+<code>sudo fastboot flash mbm archives/stock_rom/droid4/VRZ_XT894_9.8.2O-72_VZW-18-8_CFC.xml/allow-mbmloader-flashing-mbm.bin;<br>
+sudo fastboot reboot bootloader;<br>
+sudo fastboot flash bpsw archives/kexecboot/droid4/current/droid4-kexecboot.img;<br>
+sudo fastboot flash utags archives/kexecboot/droid4/utags-mmcblk1p13.bin;<br>
 sudo fastboot flash mbm archives/stock_rom/droid4/VRZ_XT894_9.8.2O-72_VZW-18-8_CFC.xml/mbm.bin</code><br>
 you can poweroff the device for now by press Power button<br>
 
