@@ -182,7 +182,6 @@ save and umount the second partition of sdcard and mount the third partition:<br
 sudo umount mnt<br>
 sudo mount /dev/${sdcard}p3 mnt</code><br>
 copy the rootfs to the third partition:<br>
-<<<<<<< HEAD
 <code>sudo install -d mnt/droid4/modem/{dynamic_data,logs}<br>
 sudo mv ${droid_rootfs}/tmp/modem.db mnt/droid4/modem/dynamic_data/</code><br>
 save and umount the third partition:<br>
