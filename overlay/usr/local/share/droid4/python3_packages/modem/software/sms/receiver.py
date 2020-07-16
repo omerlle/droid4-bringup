@@ -10,12 +10,14 @@ import select
 import software.modem_helpers as helpers
 import queue
 import os
+import re
 #import Set
 class SmsReceiver:
 	def __init__(self):
 		self.sms_client = clients.SmsClient()
 		self.worker=threading.Thread(name="receiver_worker",target=self.run)
 		self.pipe_read, self.pipe_write = os.pipe()
+		self.sms_len=0
 	def start_thread(self):
 		self.worker.setDaemon(True)
 		self.worker.start()
@@ -34,7 +36,7 @@ class SmsReceiver:
 			modem=clients.ModemClient()
 			modem.do_cmd('modem on')
 			modem.do_cmd('status off')
-		new_line=b'\r\n'
+		new_line=b'\n'
 		output=b''
 		stop = False
 		while not stop:
@@ -59,20 +61,18 @@ class SmsReceiver:
 							index=output.find(new_line)
 							while index>0:
 								word=output[:index]
-								output=output[index+2:]
+								output=output[index+1:]
 #								logging.debug("word:\""+str(word)+"\"")
-								if word==b'+GCNMA=OK':
-									logging.debug("log-get-awk:"+str(word))
-								elif word.startswith(b'~+GCMT='):
-									index=word.find(b'\r')		
-#									logging.debug("LEN:\""+str(word[7:index])+"\"")	
-									msg_len=int(word[7:index])
-									sms=word[index+1:]
-									if not sms.startswith(b'07917952'):logging.error("bad start of sms")
-									if len(sms)!=msg_len:logging.error("bad len")
+								current_len = self.sms_len
+								self.sms_len = 0
+								if re.search(b'^U[0-9]{4}', word):
+									if word[5:]==b'+GCNMA=OK':logging.debug("log-get-awk:"+str(word))
+									elif word[5:].startswith(b'~+GCMT='):self.sms_len = int(word[12:])
+								elif word.startswith(b'07917952') and current_len:
+									if len(word)!=current_len:logging.error("bad len")
 									with open(config.INCOMING_SMS_FILENAME,'w') as awk:
-										awk.write("AT+GCNMA=1\r")
-									self.sms_client.receive_new_msg(sms)
+										awk.write("U0000AT+GCNMA=1\r")
+									self.sms_client.receive_new_msg(word)
 								else:logging.error("get unknoun msg:"+str(word))
 								index=output.find(new_line)
 						except Exception as e:

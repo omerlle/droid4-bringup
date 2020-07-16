@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+import re
 import traceback
 import logging
 import select
@@ -61,7 +62,7 @@ class ModemManager:
 		modem_read.close()
 	def write_to_modem(cmd):
 		with open(config.MODEM_DEV, "w") as dev:
-			dev.write(cmd+"\r\n")
+			dev.write("U0000"+cmd+"\r")
 	def voice_call_manager(self):
 		stop=False
 		timeout=None
@@ -115,7 +116,9 @@ class ModemManager:
 					self.stop = True
 				elif cmd == 'm':
 					line=activity
-					logging.debug("Got line:"+line)	
+					logging.debug("Got line:"+line)
+					if not re.search('^U[0-9]{4}', str(line)):logging.error('BAD PREFIX U####:"'+str(line)+"'")
+					line=line[5:]
 					if line.startswith("~+RSSI="):pass
 					elif line.startswith("~+CREG="):pass
 					elif line.startswith("~+GSYST="):pass
@@ -126,7 +129,7 @@ class ModemManager:
 						nickname=self.db.get_value_sql("SELECT nickname FROM phone_book WHERE phone_number='"+self.last_call+"';",True)
 						line="GOT CALL, NUMBER:"+self.last_call+"("+str(nickname)+")"
 						logging.debug(line)
-						with open("/dev/tty1", "w") as dev:
+						with open(config.MODEM_DEV, "w") as dev:
 							dev.write(line)
 					elif line == "H:OK":self.update_db_with_conversation(1)
 					elif line.startswith("~+CIEV="):

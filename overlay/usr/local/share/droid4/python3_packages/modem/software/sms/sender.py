@@ -40,10 +40,9 @@ class SmsSender:
 				logging.error("Traceback Got ERROR: "+data)
 			else:
 				logging.debug("Got response: "+data)
-				if data.startswith("+GCMGS="):return int(data.split(',', 1)[0][7:])
+				if data.startswith("U0000+GCMGS="):return int(data.split(',', 1)[0][12:])
 		return None
 	def send(self,pdus,date):
-		config.SMS_SEND_DEV="/dev/motmdm3"
 		logging.debug(pdus)
 		msg_id=self.db.insert_row_and_get_id('INSERT INTO messages (msg, phone_number, date, phone_book_nickname,status,total_parts_number,complete) VALUES (?,?,?,?,?,?,?)',(pdus.message,pdus.phone,date,pdus.nickname,MessageStatus.SEND_FAIL.value,len(pdus.tpdus),'n'))
 		succses=True
@@ -53,9 +52,9 @@ class SmsSender:
 			modem_read = open(config.SMS_SEND_DEV,"r")
 			self.check_output(modem_read,0)
 			with open(config.SMS_SEND_DEV, "w") as dev:
-				dev.write("AT+GCMGS=\x0D")
+				dev.write("U0000AT+GCMGS=\r")
 			with open(config.SMS_SEND_DEV, "w") as dev:
-				dev.write(line + '\x1a')
+				dev.write('U'+line + '\x1a\r')
 			ans=self.check_output(modem_read,-1)
 			if ans == None:succses=False
 			else:self.db.run_sql('INSERT INTO pdus (pdu, date, msg_id, sequence_part_number, tmp_msg) VALUES (?,?,?,?,?)',(str(msg_id)+':'+str(i)+':'+line, date, msg_id, i, ans))
