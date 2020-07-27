@@ -79,8 +79,8 @@ class ModemManager:
 				elif cmd == VoiceCallCmd.INCOMING_CALL:
 #					db.voice_call_status(INCOMING_CALL)
 					status=VoiceCallStatus.INCOMING_CALL
-					leds.set_leds(leds_handler.LedName.RED,leds_handler.LedAction.SET,255)
-					vibrator.vibrate(300)                                                                            
+					if config.LEDS_ENABLE: leds.set_leds(leds_handler.LedName.RED,leds_handler.LedAction.SET,255)
+					if config.VIBRATOR_ENABLE: vibrator.vibrate(300)                                                      
 					timeout=1
 				elif cmd == VoiceCallCmd.ANSWER:
 #					db.voice_call_status(CONVERSATION)
@@ -88,17 +88,17 @@ class ModemManager:
 					timeout=None
 				elif cmd == VoiceCallCmd.HENGUP:
 #					db.voice_call_status(HANGUP)
-					leds.set_leds(leds_handler.LedName.RED,leds_handler.LedAction.SET,0)
+					if config.LEDS_ENABLE:leds.set_leds(leds_handler.LedName.RED,leds_handler.LedAction.SET,0)
 					status=VoiceCallStatus.IDLE
 					timeout=None
 				elif cmd == VoiceCallCmd.CALL:
 #					db.voice_call_status(WAIT_FOR_ANSWER)
 					status=VoiceCallStatus.WAIT_FOR_ANSWER
-					leds.set_leds(leds_handler.LedName.RED,leds_handler.LedAction.SET,255)
+					if config.LEDS_ENABLE:leds.set_leds(leds_handler.LedName.RED,leds_handler.LedAction.SET,255)
 					timeout=None
 				logging.info('MOVE_STATE'+str(status))
 			except queue.Empty:
-				vibrator.vibrate(300)
+				if config.VIBRATOR_ENABLE: vibrator.vibrate(300)
 			except Exception as e:                                                      
 				logging.error(traceback.format_exc())
 	def update_db_with_conversation(self,status):
@@ -144,7 +144,7 @@ class ModemManager:
 							self.voice_call_queue.put(VoiceCallCmd.HENGUP)
 							if self.last_call:
 								self.update_db_with_conversation(3)
-								leds_handler.Leds().set_leds(leds_handler.LedName.BLUE,leds_handler.LedAction.SET,255)
+								if config.LEDS_ENABLE:leds_handler.Leds().set_leds(leds_handler.LedName.BLUE,leds_handler.LedAction.SET,255)
 						elif line == "~+CIEV=1,3,0" or line == "~+CIEV=1,7,0":pass
 #						else:raise helpers.ModemError('bad ~+CIEV:"'+line+"'")
 						else:logging.error('Traceback bad ~+CIEV:"'+line+"'")

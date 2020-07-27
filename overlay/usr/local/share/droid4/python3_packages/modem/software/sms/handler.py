@@ -111,8 +111,8 @@ class SmsManager:
 					logging.info(activity)
 					inform_msg=self.insert_new_sms(args)
 					if inform_msg:
-						vibrator.vibrate()
-						leds.set_leds(leds_handler.LedName.BLUE,leds_handler.LedAction.SET,255)
+						if config.VIBRATOR_ENABLE: vibrator.vibrate()
+						if config.LEDS_ENABLE: leds.set_leds(leds_handler.LedName.BLUE,leds_handler.LedAction.SET,255)
 						message,date,phone,nickname=inform_msg
 						if not nickname: nickname=""
 						logging.warning("GET_SMS:"+phone+"("+nickname+")"+message)
