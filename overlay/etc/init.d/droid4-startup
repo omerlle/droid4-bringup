@@ -3,10 +3,10 @@
 depend() {
 	need dev
 	need localmount
-	after modules
+	need sshd
 	before wpa_supplicant
 }
 
-command="/usr/local/bin/droid4-startup"
+command="/usr/local/bin/droid4-startup.sh"
 command_args='start'
 pidfile="/run/${RC_SVCNAME}.pid"

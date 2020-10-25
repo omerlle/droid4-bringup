@@ -4,6 +4,6 @@ depend() {
         after modules
 }
 export PYTHONPATH="/usr/local/share/droid4/python3_packages"
-command="/usr/local/share/droid4/python3_packages/hardware/buttons_handler.py"
+command="/usr/local/bin/buttons_handler"
 command_background=true
 pidfile="/run/${RC_SVCNAME}.pid"

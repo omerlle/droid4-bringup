@@ -1,6 +1,5 @@
 #!/bin/sh
 mac=""
-DROID4_CONFIG_FILE='/root/.droid4/startup.config'
 UART_IDLE_MS=3000
 #
 # Note that this does not consider the calibration data right now
@@ -38,21 +37,6 @@ read_mac() {
 
         umount ${tmp}
 }
-idle_uarts() {
-        # Enable autosuspend
-        uarts=$(find /sys/bus/platform/devices/4*.serial/power/ -type d)
-        for uart in ${uarts}; do
-                echo -n ${UART_IDLE_MS} > ${uart}/autosuspend_delay_ms > /dev/null 2>&1
-                echo -n enabled > ${uart}/wakeup > /dev/null 2>&1
-                echo -n auto > ${uart}/control > /dev/null 2>&1
-        done
-
-        # Configure wake-up from suspend
-        uarts=$(find /sys/class/tty/tty[SO]*/power/ -type d 2>/dev/null)
-        for uart in ${uarts}; do
-                echo -n enabled > ${uart}/wakeup
-        done
-}
 set_alsa() {
 	#set alsamixer for voice call
 	amixer set "Speaker Right" "Voice"
@@ -75,20 +59,8 @@ start_wlan(){
         fi
 }
 case $1 in
-	configure)
-		shift                                                                             
-		if [ $# -eq 0 ] ;then                                                             
-			echo "idle_uarts wlan alsa" > ${DROID4_CONFIG_FILE}                    
-		else                                                                              
-			echo "$@" > ${DROID4_CONFIG_FILE}                                      
-		fi
-	;;
 	start)
-		for process in `cat ${DROID4_CONFIG_FILE}` ; do
-			# Configure PM runtime autosuspend	
-			if [ "$process" == "idle_uarts" ] ; then
-				idle_uarts
-			fi
+		for process in $processes ; do
 			#wlan		
 			if [ "$process" == "wlan" ] ; then
 				start_wlan
@@ -100,7 +72,7 @@ case $1 in
 		done
 	;;
 	*)
-        	echo "Usage: $0 [start|configure]"
+        	echo "Usage: $0 [start]"
         	exit 1
         ;;
 esac

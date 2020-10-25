@@ -16,8 +16,8 @@ udc_load_modules() {
 }
 udc_configure() {
 	ifconfig usb0 hw ether de:ab:6a:7a:fc:0b
-	ifconfig usb0 10.0.1.2 netmask 255.255.255.0 up
-	route add default gw 10.0.1.1
+	ifconfig usb0 192.168.42.2 netmask 255.255.255.0 up
+	route add default gw 192.168.42.1
 }
 
 udc_pm_test() {
