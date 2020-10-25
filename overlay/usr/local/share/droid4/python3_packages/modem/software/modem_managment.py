@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+
+# @author: omerlle (omer levin; omerlle@gmail.com)
+# Copyright 2020 omer levin
+
 import os
 import re
 import traceback
@@ -103,7 +107,9 @@ class ModemManager:
 				logging.error(traceback.format_exc())
 	def update_db_with_conversation(self,status):
 		if self.last_call:
-			self.db.run_sql('INSERT INTO voice_call_list (phone,date,status) VALUES(?,?,?)',(self.last_call, date_helper.date_to_string(), status));
+			date=date_helper.date_to_string()
+			if config.NOTIFY_EVENTS: clients.NotifyClient.call_status_updated(status,self.last_call, date)
+			self.db.run_sql('INSERT INTO voice_call_list (phone,date,status) VALUES(?,?,?)',(self.last_call, date, status));
 			self.last_call = None
 	def run(self):
 		logging.debug('run...')
@@ -129,9 +135,11 @@ class ModemManager:
 						nickname=self.db.get_value_sql("SELECT nickname FROM phone_book WHERE phone_number='"+self.last_call+"';",True)
 						line="GOT CALL, NUMBER:"+self.last_call+"("+str(nickname)+")"
 						logging.debug(line)
-						with open(config.MODEM_DEV, "w") as dev:
-							dev.write(line)
-					elif line == "H:OK":self.update_db_with_conversation(1)
+						if config.NOTIFY_EVENTS: clients.NotifyClient.new_call(self.last_call, date_helper.date_to_string(),nickname)
+					elif line == "H:OK":
+						#TODO:we need that hate. maybe we get also  line == "~+CIEV=1,0,0" or line == "~+CIEV=1,0,4"
+						self.voice_call_queue.put(VoiceCallCmd.HENGUP)
+						self.update_db_with_conversation(3)
 					elif line.startswith("~+CIEV="):
 						if line == "~+CIEV=1,4,0":self.voice_call_queue.put(VoiceCallCmd.INCOMING_CALL)
 						elif line == "~+CIEV=1,2,0":
@@ -142,9 +150,8 @@ class ModemManager:
 							self.update_db_with_conversation(2)
 						elif line == "~+CIEV=1,0,0" or line == "~+CIEV=1,0,4":
 							self.voice_call_queue.put(VoiceCallCmd.HENGUP)
-							if self.last_call:
-								self.update_db_with_conversation(3)
-								if config.LEDS_ENABLE:leds_handler.Leds().set_leds(leds_handler.LedName.BLUE,leds_handler.LedAction.SET,255)
+							self.update_db_with_conversation(3)
+							if self.last_call and config.LEDS_ENABLE:leds_handler.Leds().set_leds(leds_handler.LedName.BLUE,leds_handler.LedAction.SET,255)
 						elif line == "~+CIEV=1,3,0" or line == "~+CIEV=1,7,0":pass
 #						else:raise helpers.ModemError('bad ~+CIEV:"'+line+"'")
 						else:logging.error('Traceback bad ~+CIEV:"'+line+"'")
@@ -180,7 +187,7 @@ class ModemManager:
 						self.last_call = phone
 						logging.info('try to call:'+phone)
 						ModemManager.write_to_modem("ATD+"+phone+line_id)
-					else:raise helpers.ModemError("bad activity"+activity)
+					else:raise helpers.ModemError("bad activity "+activity)
 				else:raise helpers.ModemError("bad cmd"+cmd)
 			except Exception as e:
 				logging.error(traceback.format_exc())

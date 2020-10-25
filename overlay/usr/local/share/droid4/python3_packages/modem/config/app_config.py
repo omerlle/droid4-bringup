@@ -10,7 +10,11 @@ INCOMING_SMS_FILENAME=DEV+'gsmtty9'
 LOG_PATH_PREFIX=USER_DATA_PREFIX+'modem/logs/'
 DATABASE_FILENAME=USER_DATA_PREFIX+'modem/dynamic_data/modem.db'
 SERVER_ADDRESS=TMP_PATH+'server'
-NEW_SMS_REGISTER_PIPE_FILENAME=TMP_PATH+'new_sms'
+NOTIFICATION_FILENAME='/root/modem_notifications'
+NOTIFY_EVENTS=True
 INIT_MODEM=True
-VIBRATOR_ENABLE=False
-LEDS_ENABLE=False
+VIBRATOR_ENABLE=True
+LEDS_ENABLE=True
+#client
+PHONE_LIST_FILENAME="/usr/local/share/droid4/emacs/phone_list.txt"
+NICKNAME_LIST_FILENAME="/usr/local/share/droid4/emacs/nickname_hash.el"

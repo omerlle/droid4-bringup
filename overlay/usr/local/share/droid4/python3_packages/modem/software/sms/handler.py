@@ -1,4 +1,9 @@
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
+
+# @author: omerlle (omer levin; omerlle@gmail.com)
+# Copyright 2020 omer levin
+
 import config.app_config as config
 import software.db_manager as sqlite_parser
 import software.sms.receiver as sms_receiver
@@ -17,7 +22,6 @@ class SmsManager:
 	def __init__(self):
 		self.db=None
 		self.sms_queue=clients.managers_queues[clients.managers.sms.value]
-		self.pipe_client = clients.PipeClient()
 		self.worker=threading.Thread(name="sms_manager_worker",target=self.run)
 		self.receiver = sms_receiver.SmsReceiver()
 		self.sender = sms_sender.SmsSender()
@@ -116,6 +120,8 @@ class SmsManager:
 						message,date,phone,nickname=inform_msg
 						if not nickname: nickname=""
 						logging.warning("GET_SMS:"+phone+"("+nickname+")"+message)
+						if config.NOTIFY_EVENTS:
+							clients.NotifyClient.new_sms(phone,date,nickname,message.rstrip())
 				else:raise helpers.ModemError("bad activity"+activity)
 			except Exception as e:
 				logging.error(traceback.format_exc())

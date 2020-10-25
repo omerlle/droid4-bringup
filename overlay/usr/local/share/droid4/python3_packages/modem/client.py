@@ -1,9 +1,13 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
+# @author: omerlle (omer levin; omerlle@gmail.com)
+# Copyright 2020 omer levin
+
 import socket
 import sys
 import time
+import subprocess
 from enum import Enum
 
 import argparse
@@ -153,6 +157,19 @@ class Client():
 		if description: sql_set.append("description='"+description+"'")
 		if update_date:sql_set.append("date='"+date_helper.date_to_string()+"'")
 		self.db.run_sql('UPDATE phone_book SET '+ ",".join(sql_set) + ' WHERE id=' + str(id) + ';')
+	def update_phonebook_lists(self, update_phone_list, update_nickname_list):
+		if update_nickname_list:
+			ans=self.db.get_data_sql('select phone_number,nickname from phone_book where nickname not null;')
+			with open(config.NICKNAME_LIST_FILENAME, "w") as nickname_list:
+				nickname_list.write("(setq nickname-list (make-hash-table :test 'equal))\n")
+				for phone_number,nickname in ans:
+					nickname_list.write('(puthash "'+nickname+"\" '(\""+nickname+'" "'+phone_number+'") nickname-list)\n')
+			subprocess.run(["emacs", "-batch", "-f", "batch-byte-compile", config.NICKNAME_LIST_FILENAME])
+		if update_phone_list:
+			ans=self.db.get_data_sql('select subject text,first_name, last_name, nickname, id, description, date, phone_number from phone_book;')
+			with open(config.PHONE_LIST_FILENAME, "w") as phone_list:
+				for row in ans:
+					phone_list.write('|'.join(map(str,row))+"\n")
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description='cli for droid4_modem.')
 	parser.set_defaults(cmd=None)
@@ -222,7 +239,12 @@ if __name__ == '__main__':
 	show_phonebook_parser.add_argument('-s','--subject', help="show subject that start with the pattern", action='store')
 	show_phonebook_parser.add_argument('-f','--full', help="show only full pattern", action='store_true')
 	show_phonebook_parser.set_defaults(action="show")
+	update_phonebook_parser = phonebook_subparsers.add_parser('update', help='update phonebook lists')
+	update_phonebook_parser.add_argument('-n','--nickname', help="update nickname list by phonebook",  action='store_true')
+	update_phonebook_parser.add_argument('-l','--list', help="update phone list by phonebook",  action='store_true')
+	update_phonebook_parser.set_defaults(action="update")
 	phonebook_parser.set_defaults(cmd="phonebook")
+	phonebook_parser.set_defaults(action=None)
 	call_parser = subparsers.add_parser('call', help='voice call')
 	call_parser.set_defaults(cmd="call")
 	call_parser.add_argument('-n','--nickname', help="use name instead of phone for call", action='store_true')
@@ -239,10 +261,18 @@ if __name__ == '__main__':
 		print('miss at least one phone number or nickname')
 		send_parser.print_usage()
 		exit(-1)
+	if args.cmd and args.cmd == "phonebook" and not args.action:
+		print('miss action')
+		phonebook_parser.print_usage()
+		exit(-1)
 	if args.cmd and args.cmd == "phonebook" and args.action == "edit" and not (args.phone or args.nickname or args.subject or args.description or args.time):
-                print('miss filed for update')
-                send_parser.print_usage()
-                exit(-1)
+		print('miss filed for update')
+		edit_phonebook_parser.print_usage()
+		exit(-1)
+	if args.cmd and args.cmd == "phonebook" and args.action == "update" and not (args.list or args.nickname):
+		print('miss list for update')
+		update_phonebook_parser.print_usage()
+		exit(-1)
 	cel_modem=Client()
 	if args.old:leds.Leds().set_leds(leds.LedName.BLUE,leds.LedAction.TURN_OFF)
 	if args.modem:cel_modem.set_modem(args.modem)
@@ -280,6 +310,7 @@ if __name__ == '__main__':
 				if args.time:fileds=fileds+', date'
 				cel_modem.show_phonebook(fileds,args.full,args.ids,args.phones,args.names,args.nicknames,args.lastnames,args.subject)
 			elif args.action == 'edit':cel_modem.edit_phonebook(args.id, args.phone, args.name, args.nickname, args.lastname, args.subject, args.description, args.time)
+			elif args.action == 'update':cel_modem.update_phonebook_lists(args.list, args.nickname)
 			else:print("error:bad cmd-"+args.action)
 		else:print("error:bad cmd-"+args.cmd)
 	if args.quit:cel_modem.quit_modem()
