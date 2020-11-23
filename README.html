@@ -66,7 +66,7 @@ clone tony lindgren kernel repository:<br>
 go into tmlind_linux:<br>
 <code>pushd linux/tmlind_linux</code><br>
 checkout the latest kernel branch:<br>
-<code>git checkout -b local/droid4-pending-v5.8 origin/droid4-pending-v5.8</code><br>
+<code>git checkout -b local/droid4-pending-v5.9 origin/droid4-pending-v5.9</code><br>
 setup your default kernel configuration:<br>
 <code>make ARCH=arm omap2plus_defconfig</code><br>
 compaile the kernel:<br>
@@ -108,11 +108,13 @@ run chroot to config the rootfs on pc:<br>
 install useful packages:<br>
 <code>apk update</code><br>
 <code>apk upgrade</code><br>
-<code>apk add openrc udev openssh python3 alsa-utils util-linux rsync xorg-server xinit i3wm evince xterm tmux eog linux-headers build-base python3-dev sqlite kbd libqmi emacs linux-firmware wpa_supplicant bluez wireless-tools py3-pip</code><br>
+<code>apk add openrc udev openssh python3 alsa-utils util-linux rsync xorg-server xinit i3wm evince xterm tmux eog linux-headers build-base python3-dev sqlite kbd libqmi emacs linux-firmware wpa_supplicant bluez wireless-tools py3-pip iw</code><br>
 <code>pip3 install --upgrade pip</code><br>
 <code>pip3 install evdev</code><br>
 mount mass storage directory /root/user_data:<br>
 <code>echo "/dev/mmcblk0p3 /root/user_data vfat defaults" >> /etc/fstab</code><br>
+build the bins:<br>
+<code>make install -C /tmp/src</code><br> 
 set the databases:<br>
 <code>sqlite3 /root/.droid4/hardware.db < /usr/local/share/droid4/python3_packages/hardware/config/hardware_db.back<br>
 sqlite3 /tmp/modem.db < /usr/local/share/droid4/python3_packages/modem/config/modem_db.back</code><br>
