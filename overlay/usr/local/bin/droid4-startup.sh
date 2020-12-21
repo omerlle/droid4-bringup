@@ -39,13 +39,13 @@ read_mac() {
 }
 set_alsa() {
 	#set alsamixer for voice call
+	sleep 6
 	amixer set "Speaker Right" "Voice"
 	amixer set "Call Noise Cancellation" unmute
 	amixer set "Call" 100%
 	amixer set "Mic2" 40%
 	amixer set "Left" "Mic 2"
 	amixer set "Voice" 55%
-	amixer set "Mic2" 100%
 	amixer set "Call Output" Speakerphone
 }
 start_wlan(){
@@ -70,6 +70,9 @@ case $1 in
 				set_alsa
 			fi
 		done
+	;;
+	wlan)
+		start_wlan
 	;;
 	*)
         	echo "Usage: $0 [start]"

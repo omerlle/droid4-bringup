@@ -3,7 +3,6 @@
 depend() {
 	need dev
 	need localmount
-	need sshd
 	before wpa_supplicant
 }
 

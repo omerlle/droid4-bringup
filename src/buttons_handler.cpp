@@ -13,11 +13,11 @@
 #include <iostream>
 #include <fstream>
 
-const int timeout=10*1000;
+int timeout=-1;
 bool droid_en_keyboard=true;
-std::ofstream droid_blank_screen;
+std::ofstream droid_blank_screen,droid_modem;
 enum dev_events{ev_first, ev_keyboard_volumeup=ev_first, ev_power, ev_volumedown_slide, ev_last};
-void close_screen()                                                                       
+void blank_screen()                                                                       
 {                                                                                         
         droid_blank_screen.open ("/sys/devices/platform/omapdrm.0/graphics/fb0/blank");
         droid_blank_screen << "1";                                                     
@@ -30,19 +30,40 @@ void handle_event(enum dev_events name, struct input_event &ev,int rd)
 		switch (ev.code)
 		{
 			case KEY_VOLUMEDOWN://volumedown released
-				system("/usr/local/share/droid4/python3_packages/modem/client.py -g");
+			{
+			        int fd(open("/dev/gsmtty1",O_WRONLY));
+			        if (fd>0)
+			        {
+				     write(fd,"U0000ATH\r",9);
+				     close(fd);
+				}
+                        }
 			break;
 			case KEY_VOLUMEUP://volumeup released
-				system("/usr/local/share/droid4/python3_packages/modem/client.py -a");           
+		        {  
+			        int fd(open("/dev/gsmtty1",O_WRONLY));
+			        if (fd>0)
+			        {
+				     write(fd,"U0000ATA\r",9);
+				     close(fd);
+				}
+		        }
                         break;
-                        case KEY_OK://power released                                                            
+                        case KEY_POWER://ok released                                                             
+			        timeout=5000;//close_screen();
+				system("/usr/local/share/droid4/python3_packages/modem_wrapper/software/main.py -n");
+                        break;
+                        case KEY_OK://power released                                                             
 				droid_en_keyboard? system("loadkeys /usr/local/share/fonts/symbols"):system("loadkeys us");
 				droid_en_keyboard=!droid_en_keyboard;
 			break;
 		}
 	}else if (ev.type == 5 && ev.code == 10)
 	{
-		close_screen();
+		if (ev.value==0)//slide closed
+		{
+			    timeout=1000;
+		}
 	}
 }
 bool add_fd(int &fd, enum dev_events name)
@@ -76,7 +97,6 @@ int main (int argc, char *argv[])
 {
         struct input_event ev;
         int rd,ret;
-	bool got_key=false;
         struct pollfd poll_fd[ev_last];
         for (int i=ev_first;i<ev_last;i++)
         {
@@ -95,22 +115,16 @@ int main (int argc, char *argv[])
                 	                while(rd>0)
                         	        {
                                 	        rd = read (poll_fd[i].fd, (void*)&ev, sizeof(ev));
-						if(rd>0 && ev.value==0 && (ev.type==1 || ev.type==5))
+						if(rd>0 && ((ev.type==1 && ev.value==0) || ev.type==5))
        	                                        	handle_event(static_cast<enum dev_events>(i), ev, rd);
 					}
                                 }
 			}
 		}else
                 {
-
-			if (got_key==true)
-			{
-				printf ("blank_screen.\n");
-				close_screen();
-			}
-			got_key=false;
+			blank_screen();
+			timeout=-1;
                 }
         }
         return 0;
 }
-	

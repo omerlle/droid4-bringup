@@ -1,10 +1,16 @@
-import software.modem_helpers as helpers
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+
+# @author: omerlle (omer levin; omerlle@gmail.com)
+# Copyright 2020 omer levin
+
 import logging
 import string
 import math
 import datetime
 
 import utils.date_helper as date_helper
+import modem_wrapper.software.helpers as helpers
 gsm_byte_to_char = (u"@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞ\x1bÆæßÉ !\"#¤%&'()*+,-./0123456789:;<=>?¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ`¿abcdefghijklmnopqrstuvwxyzäöñüà")
 gsm_special={10:'0x0C',20:'^',40:'{',41:'}',47:'\\',60:'[',61:'~',62:']',64:'|',101:'€'}
 gsm_special_chars={'0x0C':10,'^':20,'{':40,'}':41,'\\':47,'[':60,'~':61,']':62,'|':64,'€':101}
@@ -78,17 +84,15 @@ def gsm7_encode(msg):
 	return gsm7
 class PDUReceive:
 	def __init__(self, pdu):
-		self.tpdu=pdu.decode()
+		self.tpdu=pdu
 		if not all(c in string.hexdigits for c in self.tpdu): raise helpers.ModemError("error-not hex:"+self.tpdu)
 		tpdu_length=len(self.tpdu)
 		if tpdu_length < 20:raise helpers.ModemError("error-small tpdu<20("+str(tpdu_length)+").")
-#		self.SMSC_p=self.tpdu[:16]
 		FirstOctet=int(self.tpdu[16:18], 16)
 		logging.debug('FirstOctet:'+self.tpdu[16:18])
 		hes_header=True if (FirstOctet & 64) == 64 else False
 		LengthSenderPhoneNumber=int(self.tpdu[18:20], 16)
 		NumberType=self.tpdu[20:22]
-#		logging.debug('NumberType:'+NumberType)
 		ProtocolIdentifierIndex=22+int((LengthSenderPhoneNumber+1)/2)*2
 		if tpdu_length < ProtocolIdentifierIndex+20:raise helpers.ModemError("error-small tpdu<"+str(ProtocolIdentifierIndex+20)+"("+str(tpdu_length)+").")
 		if NumberType == '91' or NumberType == '81':
@@ -142,7 +146,7 @@ class PDUSend:
 			smsBody=''.join([ big[2+x:4+x]+big[x:2+x] for x in range(0, len(big), 4) ])
 		length=int(len(smsBody)/2)
 		if length>140:
-			reference_number='%04x'%(db.get_and_set_reference_number(phone))
+			reference_number='%04x'%(helpers.get_and_set_reference_number(db,phone))
 			logging.debug(reference_number)
 			pdu_type="41"
 			count=int(math.ceil(length/124.0))

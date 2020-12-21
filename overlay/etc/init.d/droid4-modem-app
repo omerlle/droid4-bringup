@@ -4,6 +4,7 @@ depend() {
         after modules
 }
 export PYTHONPATH="/usr/local/share/droid4/python3_packages"
-command="/usr/local/share/droid4/python3_packages/modem/main.py"
+command="/usr/local/bin/droid4_modem_demon"
 command_background=true
 pidfile="/run/${RC_SVCNAME}.pid"
+output_log="/root/user_data/droid4/modem/logs/modem_demon.log"

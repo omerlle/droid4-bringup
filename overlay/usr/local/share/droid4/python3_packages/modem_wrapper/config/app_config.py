@@ -1,20 +1,19 @@
 # -*- coding: utf-8 -*-
 DRY_RUN=False
-TMP_PATH='/tmp/droid4_modem/'
-USER_DATA_PREFIX='/root/user_data/droid4/'
+TMP_PATH='/tmp/droid4/'
+USER_DATA_PREFIX='/root/user_data/droid4/modem/'
 PATH_PREFIX='/usr/local/share/droid4/python3_packages/modem/'
 DEV='/dev/'
 SMS_SEND_DEV=DEV+"gsmtty3"
 MODEM_DEV=DEV+"gsmtty1"
-INCOMING_SMS_FILENAME=DEV+'gsmtty9'
-LOG_PATH_PREFIX=USER_DATA_PREFIX+'modem/logs/'
-DATABASE_FILENAME=USER_DATA_PREFIX+'modem/dynamic_data/modem.db'
-SERVER_ADDRESS=TMP_PATH+'server'
-NOTIFICATION_FILENAME='/root/modem_notifications'
+LOG_PATH_PREFIX=USER_DATA_PREFIX+'logs/'
+DATABASE_FILENAME=USER_DATA_PREFIX+'dynamic_data/modem.db'
+SMS_SEND_LOCK_FILENAME=USER_DATA_PREFIX+'sms_send_lock.lock'
 NOTIFY_EVENTS=True
 INIT_MODEM=True
 VIBRATOR_ENABLE=True
 LEDS_ENABLE=True
-#client
 PHONE_LIST_FILENAME="/usr/local/share/droid4/emacs/phone_list.txt"
 NICKNAME_LIST_FILENAME="/usr/local/share/droid4/emacs/nickname_hash.el"
+CAPACITY_LEVEL="/sys/class/power_supply/battery/capacity_level"
+BLANK_SCREEN="/sys/devices/platform/omapdrm.0/graphics/fb0/blank"

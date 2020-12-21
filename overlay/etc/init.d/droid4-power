@@ -1,0 +1,10 @@
+#!/sbin/openrc-run
+
+depend() {
+        after modules
+        need dev
+}
+command="/usr/local/bin/droid4-power.sh"
+command_background=true
+pidfile="/run/${RC_SVCNAME}.pid"
+output_log="/var/log/droid4-pm"

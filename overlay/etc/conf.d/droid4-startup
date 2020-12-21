@@ -1,1 +1,1 @@
-export processes="wlan alsa set_font"
+export processes="alsa"
