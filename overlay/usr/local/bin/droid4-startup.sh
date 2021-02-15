@@ -72,10 +72,13 @@ case $1 in
 		done
 	;;
 	wlan)
-		start_wlan
-	;;
+	    start_wlan
+	    ;;
+	alsa)
+	    set_alsa
+	    ;;
 	*)
-        	echo "Usage: $0 [start]"
+        	echo "Usage: $0 [start|wlan|alsa]"
         	exit 1
         ;;
 esac

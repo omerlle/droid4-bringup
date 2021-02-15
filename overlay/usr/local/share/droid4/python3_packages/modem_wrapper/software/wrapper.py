@@ -31,16 +31,8 @@ class ModemWrapper():
 		self.db.run_sql('DELETE FROM notify_list;');# WHERE temp==0;');
 		leds.Leds().set_leds(leds.LedName.RED,leds.LedAction.TURN_OFF)
 	def notify_updated(self,focus=True,first_line=False):
-		temp = self.db.get_list_sql('SELECT line FROM notify_list WHERE temp==1;')
-		header=""
-		if first_line:
-			date=datetime.datetime.today()
-			with open(config.CAPACITY_LEVEL, "r") as f:
-				header="\n****** "+f.read().strip()+" "+ date.strftime("%H:%M:%S") + " "+date_helper.get_date(3,date=date)+" "+' ******'
-		text='\n' * 9 + "\n".join(temp) if temp else "\n".join(self.db.get_list_sql('SELECT line FROM (SELECT * FROM notify_list WHERE temp==0 ORDER BY id DESC LIMIT 20) ORDER BY id ASC;'))
-		os.system("reset >/dev/tty2;setterm -foreground black -background white >/dev/tty2 </dev/tty2;echo -n '"+ text+header+"' >/dev/tty2")
+		subprocess.run(["/usr/local/bin/droid4-notify.sh"])
 		if focus:
-			subprocess.run(["chvt", "2"])
 			with open(config.BLANK_SCREEN, "w") as f:
 				f.write("0")
 	def modem_cmd(self,line):
@@ -48,13 +40,21 @@ class ModemWrapper():
 		logging.debug(line)
 		if line.startswith("~+CLIP=\""):
 			number=line.split('"', 2)[1]
-#			"privileged"
 			self.db.run_sql('INSERT INTO voice_call_list (phone,date,status,temp) VALUES(?,?,?,?)',(number, date_helper.date_to_string(), helpers.CallsStatus.INCOMING_CALL.value,1));
 			if config.LEDS_ENABLE: leds.Leds().set_leds(leds.LedName.BLUE,leds.LedAction.SET,255)
 			logging.debug(line)
 			if config.NOTIFY_EVENTS:
 				name=helpers.get_name_by_phone(self.db,number)
 				self.db.run_sql("INSERT INTO notify_list (line,temp) VALUES (?,1)",[number+" "+name+" call..."])
+				self.notify_updated()
+		elif line.startswith("~+CCWA=\""):
+			number=line.split('"', 2)[1]
+			date=date_helper.date_to_string()
+			self.db.run_sql('INSERT INTO voice_call_list (phone,date,status,temp) VALUES(?,?,?,?)',(number, date, helpers.CallsStatus.MISS.value,1));
+			name=helpers.get_name_by_phone(self.db,number)
+			self.db.run_sql("INSERT INTO notify_list (line) VALUES (?)",["--waiting:"+name+" "+number+" "+date])
+			if config.NOTIFY_EVENTS:
+				self.db.run_sql("INSERT INTO notify_list (line,temp) VALUES (?,1)",[number+" "+name+" waiting"])
 				self.notify_updated()
 		else:
 			action=helpers.ConversationAction[action]
@@ -80,7 +80,7 @@ class ModemWrapper():
 						self.db.run_sql("DELETE FROM notify_list WHERE temp=1;")
 						phone,date=data[0]
 						name=helpers.get_name_by_phone(self.db,phone)
-						self.db.run_sql("INSERT INTO notify_list (line) VALUES (?)",[["miss call:"+date+" "+phone+" "+name],[""]],True)
+						self.db.run_sql("INSERT INTO notify_list (line) VALUES (?)",["--call:"+name+" "+phone+" "+date])
 						with open(config.BLANK_SCREEN, "w") as f:                                                     
 							f.write("1")
 	def find_msg_id(self,sms,date):
@@ -123,9 +123,8 @@ class ModemWrapper():
 			if not nickname: nickname=""
 			logging.warning("GET_SMS:"+phone+"("+nickname+")"+message)
 			if config.NOTIFY_EVENTS:
-					lines=["new message:"+nickname]
+					lines=["--sms:"+nickname+" "+phone+" "+date]
 					lines.extend(message.rstrip().split("\n"))
-					lines.append("--------"+date+" "+phone+"--------")
 					self.db.run_sql("INSERT INTO notify_list (line) VALUES (?)",list(map(lambda el:[el], lines)),True)
 	def check_output(self,timeout,modem_read):
 		poll=select.poll()
@@ -136,20 +135,21 @@ class ModemWrapper():
 			if fd != modem_read.fileno():raise helpers.ModemError("bad fd:"+fd)
 			if event != select.POLLIN:raise helpers.ModemError("bad event:"+str(event))
 			data = modem_read.readline()
-			#logging.debug("after read:"+data)
 			if "ERROR" in data:
 				logging.error("Traceback Got ERROR: "+data)
 			else:
 				logging.debug("Got response: "+data)
 				if data.startswith("U0000+GCMGS="):return int(data.split(',', 1)[0][12:])
 		return None
-	def send_sms(self,message, numbers=None, nicknames=None):
+	def send_sms(self,message, numbers=None, nicknames=None, ids=None):
 		with helpers.SmsLock():
 			phones=[]
 			if nicknames:
 				phones=self.db.get_data_sql("SELECT phone_number,nickname FROM phone_book WHERE nickname  in ('"+"','".join(nicknames)+"');")
+			if ids:                                                                                                         
+				phones.extend(self.db.get_data_sql("SELECT phone_number,nickname FROM phone_book WHERE id  in ("+",".join(map(str,ids))+");"))
 			if numbers:phones.extend([[phone,''] for phone in numbers])
-			logging.warning("SEND_SMS:("+",".join([phone+"("+nickname+")" for phone,nickname in phones])+")"+message)
+			logging.warning("SEND_SMS:("+",".join([phone+"("+str(nickname)+")" for phone,nickname in phones])+")"+message)
 			modem_read = open(config.SMS_SEND_DEV,"r")
 			self.check_output(0,modem_read)
 			for phone,nickname in phones:

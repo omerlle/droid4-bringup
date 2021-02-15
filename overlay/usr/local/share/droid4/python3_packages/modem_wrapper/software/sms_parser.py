@@ -5,6 +5,12 @@
 # Copyright 2020 omer levin
 
 import logging
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+
+# @author: omerlle (omer levin; omerlle@gmail.com)
+# Copyright 2020 omer levin
+
 import string
 import math
 import datetime
@@ -19,15 +25,14 @@ def gsm7_decode(gsm7):
 	msg=''
 	escape=False
 	l=len(gsm7)
-	if l%2!=0:raise error
-	buffer = 0
-	did=True
-	l=len(gsm7)
-	if l%2!=0:raise error
+	if l%2!=0:
+		logging.error('gsm7_decode error:'+gsm7)
+		raise error
+	ln=int(l/2)
 	buffer = 0
 	did=True
 	i=0
-	while i < int(l/2):
+	while i < ln:
 		x=i*2
 		shift = i%7
 		if shift==0 and not did:did=True
@@ -44,6 +49,7 @@ def gsm7_decode(gsm7):
 			msg=msg+gsm_special[gsm7_byte]
 			escape=False
 		else:msg=msg+gsm_byte_to_char[gsm7_byte]
+	if buffer>0:msg=msg+gsm_byte_to_char[buffer]
 	return msg
 def is_gsm(msg):
 	for c in msg:
@@ -98,7 +104,7 @@ class PDUReceive:
 		if NumberType == '91' or NumberType == '81':
 			self.SenderPhoneNumber=''.join([ self.tpdu[22+x:24+x][::-1] for x in range(0, LengthSenderPhoneNumber, 2) ])
 		elif NumberType == 'D0':
-			self.SenderPhoneNumber='type-D0:'+gsm7_decode(self.tpdu[22:22+LengthSenderPhoneNumber])
+			self.SenderPhoneNumber='type-D0:'+gsm7_decode(self.tpdu[22:ProtocolIdentifierIndex])
 		else:
 			self.SenderPhoneNumber='type-'+NumberType+":"+self.tpdu[22:22+LengthSenderPhoneNumber]
 			logging.error("bad NumberType:"+NumberType)

@@ -2,8 +2,10 @@
 
 depend() {
         after modules
+	after droid4-startup
 }
 export PYTHONPATH="/usr/local/share/droid4/python3_packages"
-command="/usr/local/bin/buttons_handler"
+command="/usr/local/bin/droid4-hardware-demon"
 command_background=true
 pidfile="/run/${RC_SVCNAME}.pid"
+output_log="/root/.droid4/modem/logs/modem_demon.log"
