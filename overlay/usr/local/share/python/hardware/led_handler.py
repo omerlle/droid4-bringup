@@ -1,4 +1,8 @@
 #!/usr/bin/python3
+# -*- coding: utf-8 -*-
+
+# @author: omerlle (omer levin; omerlle@gmail.com)
+# Copyright 2020 omer levin
 
 from enum import Enum
 import utils.sqlite_helper
@@ -54,7 +58,6 @@ class Leds:
 		led.write(str(value))
 		led.close()
 		if set_default: self.set_default(name,value)
-#		print(value)
 		return
 	def get_filename(self,id):
 		return "/sys/class/leds/"+self.db.get_value_sql('SELECT sys_name FROM leds WHERE id='+str(id.value)+';')+"/brightness"

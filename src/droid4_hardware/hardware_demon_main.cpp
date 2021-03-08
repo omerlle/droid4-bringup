@@ -3,7 +3,7 @@
  *  Copyright (C) 2020  omer levin <omerlle@gmail.com>
 */
 
-#include "hardware_func.h"
+#include "misc_hardware_functions_and_class.h"
 #include <unistd.h>
 #include <fcntl.h> //O_RDONLY
 #include <poll.h> // pollfd
@@ -49,7 +49,6 @@ int main(int argc, char** argv)
 		}else
 		{
 			system("/etc/init.d/droid4-pm status >> /root/.droid4/power");
-			LOG_START << "error poll timeout" LOG_END;
 		}
         }
 }

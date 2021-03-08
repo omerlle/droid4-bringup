@@ -36,7 +36,7 @@ try:<br>
 <code>sudo fastboot devices</code><br>
 if it solve the problem change the script to run "sudo fastboot" by the command:<br>
 <code>sed -i 's/fastboot=fastboot/fastboot="sudo fastboot"/' archives/stock_rom/droid4/flash-droid-4-fw.sh</code><br>
-go into VRZ_XT894_9.8.2O-72_VZW-18-8_CFC.xml directory:</code><br>
+go into VRZ_XT894_9.8.2O-72_VZW-18-8_CFC.xml directory:<br>
 <code>pushd archives/stock_rom/droid4/VRZ_XT894_9.8.2O-72_VZW-18-8_CFC.xml</code><br>
 and run the script:<br>
 <code>bash ../flash-droid-4-fw.sh</code><br>
@@ -48,7 +48,7 @@ if you don't have git you can install it by:<br>
 <code>sudo apt-get install git</code><br>
 clone Tony Lindgren repository for droid4 kexecboot by the command:<br>
 <code>git clone https://github.com/tmlind/droid4-kexecboot.git archives/kexecboot/droid4/</code><br>
-install the Kexecboot by the commands(you can remove sudo keyword if you don't need sudo for fastboot)[my current version is 2018-05-06]:<br>
+install the Kexecboot by the commands(you can remove sudo keyword if you don't need sudo for fastboot)[my current version is 2021-01-28]:<br>
 <code>sudo fastboot flash mbm archives/stock_rom/droid4/VRZ_XT894_9.8.2O-72_VZW-18-8_CFC.xml/allow-mbmloader-flashing-mbm.bin;</code><br>
 <code>sudo fastboot reboot bootloader;</code><br>
 <code>sudo fastboot flash bpsw archives/kexecboot/droid4/current/droid4-kexecboot.img;</code><br>
@@ -66,7 +66,7 @@ clone tony lindgren kernel repository:<br>
 go into tmlind_linux:<br>
 <code>pushd linux/tmlind_linux</code><br>
 checkout the latest kernel branch:<br>
-<code>git checkout -b local/droid4-pending-v5.9 origin/droid4-pending-v5.9</code><br>
+<code>git checkout -b local/droid4-pending-v5.12 origin/droid4-pending-v5.12</code><br>
 setup your default kernel configuration:<br>
 <code>make ARCH=arm omap2plus_defconfig</code><br>
 compaile the kernel:<br>
@@ -79,7 +79,7 @@ return to base directory by:<br>
 install qemu-user-static arm emulator:<br>
 <code>sudo apt-get install qemu-user-static</code><br>
 download the alpine minimal rootfs archive:<br>
-<code>wget -P archives/basic_rootfs/alpine/ -c http://dl-cdn.alpinelinux.org/alpine/v3.12/releases/armv7/alpine-minirootfs-3.12.0-armv7.tar.gz</code><br>
+<code>wget -P archives/basic_rootfs/alpine/ -c http://dl-cdn.alpinelinux.org/alpine/v3.12/releases/armv7/alpine-minirootfs-3.12.4-armv7.tar.gz</code><br>
 clone bringup repository for droid4 more rootfs scripts:<br>
 <code>git clone https://github.com/omerlle/droid4-bringup.git archives/droid4_bringup</code><br>
 checkout the alpine branch:<br>
@@ -87,12 +87,13 @@ checkout the alpine branch:<br>
 download bluetooth firmware:<br>
 <code>wget -c https://github.com/TI-ECS/bt-firmware/raw/master/TIInit_10.6.15.bts -P archives/firmware/ti-connectivity</code><br>
 choose name to rootfs directory and create it:<br>
-<code>droid_rootfs="$PWD/rootfs/alpine/3.12.0_armv7"</code><br>
+<code>droid_rootfs="$PWD/rootfs/alpine/3.12.4_armv7"</code><br>
 <code>mkdir ${droid_rootfs}</code><br>
 extract alpine minimal rootfs into the directory:<br>
-<code>sudo tar -xzf archives/basic_rootfs/alpine/alpine-minirootfs-3.12.0-armv7.tar.gz -C ${droid_rootfs}/</code><br>
+<code>sudo tar -xzf archives/basic_rootfs/alpine/alpine-minirootfs-3.12.4-armv7.tar.gz -C ${droid_rootfs}/</code><br>
 add usage scripts:<br>
 <code>sudo rsync -a --chown=root:root archives/droid4_bringup/overlay/ ${droid_rootfs}</code><br>
+<code>sudo rsync -a --chown=root:root archives/droid4_bringup/src ${droid_rootfs}/tmp/</code><br>
 add tony lindgren pm and droid4-dtmf.sh script:<br>
 <code>sudo wget -c https://raw.githubusercontent.com/tmlind/droid4-pm/master/scripts/openrc/droid4-pm -P ${droid_rootfs}/etc/init.d</code><br>
 <code>sudo chmod +x ${droid_rootfs}/etc/init.d/droid4-pm</code><br>
@@ -108,16 +109,15 @@ run chroot to config the rootfs on pc:<br>
 install useful packages:<br>
 <code>apk update</code><br>
 <code>apk upgrade</code><br>
-<code>apk add openrc udev openssh python3 alsa-utils util-linux rsync xorg-server xinit i3wm evince xterm tmux eog linux-headers build-base python3-dev sqlite kbd libqmi emacs linux-firmware wpa_supplicant bluez wireless-tools py3-pip iw  mpg123</code><br>
+<code>apk add openrc udev openssh python3 alsa-utils util-linux rsync xorg-server xinit i3wm evince xterm tmux eog linux-headers build-base python3-dev sqlite kbd libqmi emacs linux-firmware wpa_supplicant bluez wireless-tools py3-pip iw mpg123 sqlite-dev dhclient xf86-input-evdev</code><br>
 <code>pip3 install --upgrade pip</code><br>
 <code>pip3 install evdev</code><br>
-mount mass storage directory /root/user_data:<br>
-<code>echo "/dev/mmcblk0p3 /root/user_data vfat defaults" >> /etc/fstab</code><br>
 build the bins:<br>
-<code>make install -C /tmp/src</code><br> 
+<code>make install -C /tmp/src/droid4_hardware</code><br> 
+<code>emacs -batch -f batch-byte-compile /usr/local/share/emacs/client_app.el</code><br>
 set the databases:<br>
-<code>sqlite3 /root/.droid4/hardware.db < /usr/local/share/droid4/python3_packages/hardware/config/hardware_db.back<br>
-sqlite3 /tmp/modem.db < /usr/local/share/droid4/python3_packages/modem/config/modem_db.back</code><br>
+<code>sqlite3 /root/.droid4/hardware.db < /usr/local/share/python/hardware/config/hardware_db.back<br>
+sqlite3 /tmp/modem.db < /usr/local/share/python/droid4_modem/config/modem_db.back</code><br>
 set the password for root user:<br>
 <code>passwd</code><br>
 [for uart debug:<code>echo ttyS2 >> /etc/securetty;sed -i 's/^#ttyS0\:\:respawn\:\/sbin\/getty -L ttyS0 115200 vt100/ttyS2\:\:respawn\:\/sbin\/getty -L ttyS2 115200 vt100/' /etc/inittab</code>]<br>

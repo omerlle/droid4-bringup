@@ -3,7 +3,7 @@
  *  Copyright (C) 2020  omer levin <omerlle@gmail.com>
 */
 
-#include "hardware_func.h"
+#include "misc_hardware_functions_and_class.h"
 #include <sys/types.h>
 #include <sys/ioctl.h>
 #include <unistd.h>

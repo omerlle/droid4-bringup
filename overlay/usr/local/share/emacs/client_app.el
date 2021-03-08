@@ -4,7 +4,7 @@
 ;; Author: omer levin
 ;; Copyright (C) 2020, omer levin, all rights reserved.
 
-(load "/usr/local/share/droid4/emacs/nickname_hash.elc")
+(load "/root/.droid4/modem/nickname_hash.elc")
 (setq save-list (make-hash-table :test 'equal))
 (defun send-sms (button)
  (goto-char (point-min))
@@ -12,7 +12,7 @@
     (line-beginning-position 2)
     (line-end-position (- (line-number-at-pos (point-max)) 1)))))
     (options-page nil)
-    (shell-command (format "/usr/local/share/droid4/python3_packages/modem_wrapper/software/main.py send -p '%s' '%s'" droid-phone-number msg))))
+    (shell-command (format "/usr/local/share/python/droid4_modem/software/main_modem_cli.py send -p '%s' '%s'" droid-phone-number msg))))
 ;    (message (format "sms -p '%s' %s" droid-phone-number msg)))))
 (defun call-action (button)
  (goto-char (point-min))

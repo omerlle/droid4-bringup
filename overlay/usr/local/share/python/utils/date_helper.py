@@ -1,3 +1,9 @@
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+
+# @author: omerlle (omer levin; omerlle@gmail.com)
+# Copyright 2020 omer levin
+
 import datetime
 from enum import Enum
 class DateError(Exception):

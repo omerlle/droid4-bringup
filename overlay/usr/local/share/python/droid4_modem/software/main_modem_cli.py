@@ -7,10 +7,10 @@
 import logging
 
 import utils.date_helper as date_helper
-import modem_wrapper.software.wrapper as wrapper
-import modem_wrapper.software.helpers as helpers
-import modem_wrapper.software.get_opt as opt
-import modem_wrapper.config.app_config as config
+import droid4_modem.software.modem_functions as wrapper
+import droid4_modem.software.helpers as helpers
+import droid4_modem.software.get_opt as opt
+import droid4_modem.config.app_config as config
 import hardware.led_handler as leds
 import utils.sqlite_helper
 
@@ -22,16 +22,11 @@ if __name__ == '__main__':
 	logging.getLogger('droid4.modem_wrapper')
 	args=opt.get_opt()
 	modem_wrapper=wrapper.ModemWrapper()
-	if args.clear:modem_wrapper.clear_notify()
-	if args.notify:modem_wrapper.notify_updated(first_line=True)
 	if args.modem:modem_wrapper.write_to_modem("AT+CFUN=1" if args.modem == 'on' else "AT+CFUN=0")
 	if args.answer != None:modem_wrapper.write_to_modem("ATA" if args.answer else "ATH")
 	if args.status:modem_wrapper.write_to_modem('AT+SCRN=1' if args.status == 'on' else "AT+SCRN=0")
 	if args.cmd:
-		if args.cmd == "system":
-			if args.line.startswith('0791'):modem_wrapper.receive_new_msg(args.line)
-			else:modem_wrapper.modem_cmd(args.line)
-		elif args.cmd == "sms":modem_wrapper.sms_handle(args.mark, args.sms_type,args.ids,args.nicknames,args.phones, args.length, args.delete)
+		if args.cmd == "sms":modem_wrapper.sms_handle(args.mark, args.sms_type,args.ids,args.nicknames,args.phones, args.length, args.delete)
 		elif args.cmd == "history":modem_wrapper.print_call_history(args.call_type, args.nicknames, args.phones, args.length)
 		elif args.cmd == "send":
 			modem_wrapper.send_sms(args.send_message,args.phones,args.nicknames)

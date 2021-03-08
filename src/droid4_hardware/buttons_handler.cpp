@@ -12,7 +12,7 @@
 #include <fstream>
 #include <thread>
 #include <cstring> //memset
-#include "hardware_func.h"
+#include "misc_hardware_functions_and_class.h"
 
 void blank_screen(int delay,bool *close_screen)                                                                       
 {
@@ -28,6 +28,7 @@ void blank_screen(int delay,bool *close_screen)
 }
 void peek(bool *close_screen)
 {
+	droid4::write_to_dev(droid4::LED_RED,"0");
 	system("/usr/local/bin/droid4-notify.sh");
 	blank_screen(10,close_screen);
 }

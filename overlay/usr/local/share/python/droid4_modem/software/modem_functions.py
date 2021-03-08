@@ -10,9 +10,9 @@ import subprocess
 import os
 
 import utils.date_helper as date_helper
-import modem_wrapper.software.helpers as helpers
-import modem_wrapper.software.sms_parser as pdu
-import modem_wrapper.config.app_config as config
+import droid4_modem.software.helpers as helpers
+import droid4_modem.software.sms_parser as pdu
+import droid4_modem.config.app_config as config
 import hardware.led_handler as leds
 import datetime
 import utils.sqlite_helper
@@ -27,105 +27,6 @@ class ModemWrapper():
 		logging.debug("cmd:"+cmd)
 		with open(config.MODEM_DEV, "w") as dev:
 			dev.write("U0000"+cmd+"\r")
-	def clear_notify(self):
-		self.db.run_sql('DELETE FROM notify_list;');# WHERE temp==0;');
-		leds.Leds().set_leds(leds.LedName.RED,leds.LedAction.TURN_OFF)
-	def notify_updated(self,focus=True,first_line=False):
-		subprocess.run(["/usr/local/bin/droid4-notify.sh"])
-		if focus:
-			with open(config.BLANK_SCREEN, "w") as f:
-				f.write("0")
-	def modem_cmd(self,line):
-		action = line
-		logging.debug(line)
-		if line.startswith("~+CLIP=\""):
-			number=line.split('"', 2)[1]
-			self.db.run_sql('INSERT INTO voice_call_list (phone,date,status,temp) VALUES(?,?,?,?)',(number, date_helper.date_to_string(), helpers.CallsStatus.INCOMING_CALL.value,1));
-			if config.LEDS_ENABLE: leds.Leds().set_leds(leds.LedName.BLUE,leds.LedAction.SET,255)
-			logging.debug(line)
-			if config.NOTIFY_EVENTS:
-				name=helpers.get_name_by_phone(self.db,number)
-				self.db.run_sql("INSERT INTO notify_list (line,temp) VALUES (?,1)",[number+" "+name+" call..."])
-				self.notify_updated()
-		elif line.startswith("~+CCWA=\""):
-			number=line.split('"', 2)[1]
-			date=date_helper.date_to_string()
-			self.db.run_sql('INSERT INTO voice_call_list (phone,date,status,temp) VALUES(?,?,?,?)',(number, date, helpers.CallsStatus.MISS.value,1));
-			name=helpers.get_name_by_phone(self.db,number)
-			self.db.run_sql("INSERT INTO notify_list (line) VALUES (?)",["--waiting:"+name+" "+number+" "+date])
-			if config.NOTIFY_EVENTS:
-				self.db.run_sql("INSERT INTO notify_list (line,temp) VALUES (?,1)",[number+" "+name+" waiting"])
-				self.notify_updated()
-		else:
-			action=helpers.ConversationAction[action]
-			logging.debug(action)
-			if action==helpers.ConversationAction.START_CONVERSATION:
-				if self.db.get_value_sql("SELECT temp FROM voice_call_list WHERE temp=1;",True):
-					self.db.run_sql("UPDATE voice_call_list SET temp = null WHERE temp=1;")
-					if config.NOTIFY_EVENTS:
-						self.db.run_sql("DELETE FROM notify_list WHERE temp=1;")
-						self.notify_updated(False)
-						with open(config.BLANK_SCREEN, "w") as f:                                                                             
-							f.write("1")
-			elif action==helpers.ConversationAction.DIALS:
-				if config.LEDS_ENABLE:leds.Leds().set_leds(leds.LedName.BLUE,leds.LedAction.SET,255)
-				self.db.run_sql("UPDATE voice_call_list SET temp = null WHERE temp=1;")
-			elif action==helpers.ConversationAction.HENGUP:
-				if config.LEDS_ENABLE:leds.Leds().set_leds(leds.LedName.BLUE,leds.LedAction.SET,0)
-				data=self.db.get_data_sql("SELECT phone,date FROM voice_call_list WHERE temp=1;")
-				if data:
-					self.db.run_sql("UPDATE voice_call_list SET temp=null,status="+str(helpers.CallsStatus.MISS.value)+" WHERE temp=1;")
-					if config.LEDS_ENABLE:leds.Leds().set_leds(leds.LedName.RED,leds.LedAction.SET,255)
-					if config.NOTIFY_EVENTS:
-						self.db.run_sql("DELETE FROM notify_list WHERE temp=1;")
-						phone,date=data[0]
-						name=helpers.get_name_by_phone(self.db,phone)
-						self.db.run_sql("INSERT INTO notify_list (line) VALUES (?)",["--call:"+name+" "+phone+" "+date])
-						with open(config.BLANK_SCREEN, "w") as f:                                                     
-							f.write("1")
-	def find_msg_id(self,sms,date):
-		msg_ids=self.db.get_list_sql("select id from messages where reference_number="+str(sms.reference_number)+" and total_parts_number="+str(sms.total_parts_number)+" and phone_number='"+ sms.SenderPhoneNumber+"' and complete='n';") # (complete='n'?)'
-		if len(msg_ids) == 0 : msg_id=-1
-		elif len(msg_ids) == 1: msg_id=msg_ids[0]
-		elif len(msg_ids) > 1:msg_id=self.db.get_value_sql("SELECT id,max(date) from pdu where msg_id in ("+",".join(msg_ids)+")")
-		return int(msg_id)
-	def receive_new_msg(self,line):
-		inform_msg=None
-		sms = pdu.PDUReceive(line)
-		adv=str(sms.reference_number)+","+str(sms.sequence_part_number)+"/"+str(sms.total_parts_number) if sms.total_parts_number > 1 else "1/1"
-		logging.debug(sms.tpdu+","+sms.SenderPhoneNumber+","+sms.ServiceCenterDateStamp+","+sms.msg+","+adv)
-		inform_msg=None	
-		msg_id=-1 if sms.total_parts_number == 1 else self.find_msg_id(sms,sms.ServiceCenterDateStamp)
-		if msg_id == -1:
-			inform_msg=True if sms.total_parts_number == 1 else False
-			db_name=helpers.get_name_by_phone(self.db,sms.SenderPhoneNumber)
-			if sms.total_parts_number == 1:
-				msg_id=self.db.insert_row_and_get_id('INSERT INTO messages (msg, phone_number, date, phone_book_nickname) VALUES (?,?,?,?)',(sms.msg,sms.SenderPhoneNumber,sms.ServiceCenterDateStamp,db_name))
-			else:
-				msg_id=self.db.insert_row_and_get_id("INSERT INTO messages (phone_number, date, complete, total_parts_number, reference_number, phone_book_nickname) VALUES (?,?,'n',?,?,?)",(sms.SenderPhoneNumber,sms.ServiceCenterDateStamp,sms.total_parts_number, sms.reference_number, db_name))
-		if sms.total_parts_number == 1:
-			msg=sms.msg
-			sms_date=sms.ServiceCenterDateStamp
-			self.db.run_sql('INSERT INTO pdus (pdu, date, msg_id) VALUES (?,?,?)',(sms.tpdu,sms.ServiceCenterDateStamp, msg_id))
-		else:
-			self.db.run_sql('INSERT INTO pdus (pdu, date, msg_id, sequence_part_number, tmp_msg) VALUES (?,?,?,?,?)',(sms.tpdu, sms.ServiceCenterDateStamp, msg_id, sms.sequence_part_number, sms.msg))
-		if inform_msg==None and sms.total_parts_number == int(self.db.get_value_sql("SELECT count(id) from pdus where msg_id="+str(msg_id)+";")):
-			inform_msg=True
-			msg="".join(self.db.get_list_sql("SELECT tmp_msg from pdus WHERE msg_id=" + str(msg_id) +" ORDER BY sequence_part_number"))
-			logging.debug(msg)
-			self.db.run_sql("UPDATE messages SET msg = ? ,complete='y',status=1 WHERE id = ? ;",(msg,msg_id))
-			self.db.run_sql("UPDATE pdus SET tmp_msg = Null WHERE msg_id = " + str(msg_id) +";")
-			sms_date, db_name=self.db.get_data_sql('SELECT date, phone_book_nickname FROM messages WHERE id = ' + str(msg_id) +";")[0]
-		inform_msg=[msg,sms_date, sms.SenderPhoneNumber,db_name] if inform_msg==True else None
-		if inform_msg:
-			if config.LEDS_ENABLE: leds.Leds().set_leds(leds.LedName.RED,leds.LedAction.SET,255)
-			message,date,phone,nickname=inform_msg
-			if not nickname: nickname=""
-			logging.warning("GET_SMS:"+phone+"("+nickname+")"+message)
-			if config.NOTIFY_EVENTS:
-					lines=["--sms:"+nickname+" "+phone+" "+date]
-					lines.extend(message.rstrip().split("\n"))
-					self.db.run_sql("INSERT INTO notify_list (line) VALUES (?)",list(map(lambda el:[el], lines)),True)
 	def check_output(self,timeout,modem_read):
 		poll=select.poll()
 		poll.register(modem_read.fileno(),select.POLLIN)

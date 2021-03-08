@@ -5,18 +5,13 @@
 # Copyright 2020 omer levin
 
 import logging
-#!/usr/bin/python3
-# -*- coding: utf-8 -*-
-
-# @author: omerlle (omer levin; omerlle@gmail.com)
-# Copyright 2020 omer levin
-
 import string
 import math
 import datetime
 
 import utils.date_helper as date_helper
-import modem_wrapper.software.helpers as helpers
+import droid4_modem.software.helpers as helpers
+
 gsm_byte_to_char = (u"@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞ\x1bÆæßÉ !\"#¤%&'()*+,-./0123456789:;<=>?¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ`¿abcdefghijklmnopqrstuvwxyzäöñüà")
 gsm_special={10:'0x0C',20:'^',40:'{',41:'}',47:'\\',60:'[',61:'~',62:']',64:'|',101:'€'}
 gsm_special_chars={'0x0C':10,'^':20,'{':40,'}':41,'\\':47,'[':60,'~':61,']':62,'|':64,'€':101}

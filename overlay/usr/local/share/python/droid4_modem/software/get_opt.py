@@ -5,7 +5,7 @@
 # Copyright 2020 omer levin
 
 import argparse
-import modem_wrapper.software.helpers as helpers
+import droid4_modem.software.helpers as helpers
 
 def get_opt():
 	parser = argparse.ArgumentParser(description='cli for droid4_modem.')
@@ -14,12 +14,7 @@ def get_opt():
 	parser.add_argument('-g','--hangup', help="hanging up", dest='answer', action='store_false')
 	parser.add_argument('-m','--modem', help="set the modem offline/online", action='store',choices=['off', 'on'])
 	parser.add_argument('-s','--status', help="set the network strength offline/online", action='store',choices=['off', 'on'])
-	parser.add_argument('-c','--clear', help="clear notify list and turn the new led(red) off", action='store_true')
-	parser.add_argument('-n','--notify', help="notify last event", action='store_true')
 	subparsers = parser.add_subparsers(help='modem command')
-	system_parser = subparsers.add_parser('system')
-	system_parser.add_argument('line', metavar='S', type=str, help='line from modem')
-	system_parser.set_defaults(cmd="system")
 	sms_parser = subparsers.add_parser('sms', help='show sms list')
 	sms_parser.set_defaults(status=[])
 	sms_parser.add_argument('-u','--unread', help="show unread sms", dest='sms_type', action='append_const', const=helpers.MessageStatus.UNREAD)

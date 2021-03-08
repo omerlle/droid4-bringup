@@ -1,9 +1,18 @@
 #!/usr/bin/python3
+# -*- coding: utf-8 -*-
+
+# @author: omerlle (omer levin; omerlle@gmail.com)
+# Copyright 2020 omer levin
+
 import evdev
 import struct
 import os
 import sys
 from time import sleep
+
+__author__ = "omer levin"
+__email__ = "omerlle@gmail.com"
+
 def vibrate(duration_ms = 150):
 	find=False
 	for name in evdev.list_devices():

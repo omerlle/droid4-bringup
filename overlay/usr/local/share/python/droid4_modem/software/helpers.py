@@ -7,7 +7,7 @@
 from enum import Enum
 import fcntl, os
 
-import modem_wrapper.config.app_config as config
+import droid4_modem.config.app_config as config
 
 class MessageStatus(Enum):
 	UNREAD=1
