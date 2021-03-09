@@ -117,7 +117,7 @@ build the bins:<br>
 <code>emacs -batch -f batch-byte-compile /usr/local/share/emacs/client_app.el</code><br>
 set the databases:<br>
 <code>sqlite3 /root/.droid4/hardware.db < /usr/local/share/python/hardware/config/hardware_db.back<br>
-sqlite3 /tmp/modem.db < /usr/local/share/python/droid4_modem/config/modem_db.back</code><br>
+sqlite3 /root/.droid4/modem/dynamic_data.db < /usr/local/share/python/droid4_modem/config/modem_db.back</code><br>
 set the password for root user:<br>
 <code>passwd</code><br>
 [for uart debug:<code>echo ttyS2 >> /etc/securetty;sed -i 's/^#ttyS0\:\:respawn\:\/sbin\/getty -L ttyS0 115200 vt100/ttyS2\:\:respawn\:\/sbin\/getty -L ttyS2 115200 vt100/' /etc/inittab</code>]<br>
@@ -159,18 +159,10 @@ copy the rootfs to the second partition:<br>
 <code>sudo rsync --delete -av ${droid_rootfs}/ mnt/</code><br>
 install the modules in the rootfs:<br>
 <code>sudo make -j8 ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- modules_install INSTALL_MOD_PATH=${PWD}/mnt/ -C linux/tmlind_linux</code><br>
-save and umount the second partition of sdcard and mount the third partition:<br>
-<code>sync</code><br>
-sudo umount mnt</code><br>
-sudo mount /dev/${sdcard}p3 mnt</code><br>
-copy the rootfs to the third partition:<br>
-<code>sudo install -d mnt/droid4/modem/{dynamic_data,logs}<br>
-sudo mv ${droid_rootfs}/tmp/modem.db mnt/droid4/modem/dynamic_data/</code><br>
-save and umount the third partition:<br>
+save and umount the second partition of sdcard:<br>
 <code>sync</code><br>
 <code>sudo umount mnt</code><br>
 return to your original path:<br>
 <code>popd</code><br>
 that it, insert the sdcard to the phone and turn it on(you need to wait couple of minute.<br>
-for droid4 usage you can see <a href="https://guidelinuxphone.wordpress.com/droid4-alpine-usage/">
-droid4-alpine-usage</a>.<br>
+for droid4 usage you can see USER_GUIDE.<br>

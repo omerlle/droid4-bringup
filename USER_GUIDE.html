@@ -1,0 +1,199 @@
+<p style="text-align:left;">
+<img src="https://guidelinuxphone.files.wordpress.com/2019/02/pexels-photo-373912.jpeg" alt="aerial architectural design architecture buildings" width="1880" height="1253" class="alignnone size-full wp-image-67" /> 
+<h2>login</h2>
+after you insert the sd card to the phone, turn it on and wait couple of minute, you supposed to see the login section that look like that:<br>
+<code>Welcome to Alpine Linux 3.12</code><br>
+<code>Kernel 5.12.0-rc2-731785-gfb967d28c7c6 on an armv7l (/dev/tty1)</code><br><br>
+<code>droid4 login:</code><br>
+you need to insert the username("root") and press enter
+then you will see:<br>
+<code>Password:</code><br>
+type your password and than enter.<br>
+if you succeed login, you'll see:<br>
+<code>Welcome to Alpine!</code><br>
+<br>
+<code>The Alpine Wiki contains a large amount of how-to guides and general</code><br>
+<code>information about administrating Alpine systems.</code><br>
+<code>See <http://wiki.alpinelinux.org/>.</code><br>
+<br>
+<code>You can setup the system with the command: setup-alpine</code><br>
+<br>
+<code>You may change this message by editing /etc/motd.</code><br>
+<br>
+<code>droid4:~#</code><br>
+this is the linux prompt. now you ready to write commands.<br>
+<h2>use phone options</h2>
+<h3>run commands from the computer and use the phone as mass storage devicei:</h3>
+to run commands from the computer via ssh, we first need to configure the ip of the droid4 device to 192.168.42.1 on the computer. you can configure your computer to do this automatically by the commands(on the PC):<br>
+<code>sudo touch /etc/udev/scripts/droid4 /etc/udev/rules.d/90-local.rules</code><br>
+<code>sudo chmod 646 /etc/udev/scripts/droid4 /etc/udev/rules.d/90-local.rules /etc/network/interfaces</code><br>
+<code>echo '#!/bin/bash' > /etc/udev/scripts/droid4</code><br>
+<code>echo "ifconfig droid4 192.168.42.1 netmask 255.255.255.0" >> /etc/udev/scripts/droid4</code><br>
+<code>sudo chmod 755 /etc/udev/scripts/droid4</code><br>
+<code>echo 'SUBSYSTEM=="net", ACTION=="add", DRIVERS=="usb", ATTRS{serial}=="0000:00:1d.0",ATTR{dev_id}=="0x0", ATTR{type}=="1", KERNEL=="usb*", NAME="droid4" , RUN+="/etc/udev/scripts/droid4"' >> /etc/udev/rules.d/90-local.rules</code><br>
+<code>echo -e "auto usb\niface droid4 inet static\n  address 192.168.42.1\n  netmask 255.255.255.0" >> /etc/network/interfaces</code>
+<code>sudo chmod 644 /etc/network/interfaces /etc/udev/rules.d/90-local.rules</code><br>
+and then reboot the computer.<br>
+now connect your device to the computer via usb cable and you will see the second partition of the sd card.<br>
+type in the pc (or "ssh root@droid4" if you added the line:"192.168.42.2	droid4" in /etc/hosts):<br>
+<code>ssh root@192.168.42.2</code><br>
+you supposed to see again the login section.<br>
+after that you login(the same action like in the login part[the first part] of the guide). you can continue to type the following commands from your pc through the ssh secction.<br>
+you can stop mass storage functionality and turn them on again by the commands(in the device or in the ssh sectioni for stop):<br>
+turn on:<br>
+<code>/etc/init.d/droid4-usb start</code><br>
+turn off:<br>
+<code>/etc/init.d/droid4-usb stop</code><br>
+you can also set if the functionality will be on or off at boot time by the commands:<br>
+automatically on:<br>
+<code>rc-update add droid4-usb default</code><br>
+automatically off:<br>
+<code>rc-update del droid4-usb default</code><br>
+<h3>cantrol the device</h3>
+<h4>set the leds keyboard/RGB/screen button etc,</h4>
+you can change the brightness light of the keyboard or the button leds, it can get in value from 0(off) to 255(max) and you can do it by the commands:<br>
+set keyboard brightness:<br>
+by alias:<br>
+on:<code>ok</code><br>
+off:<code>okf</code><br>
+by script:<br>
+<code>droid4-leds -s 255 keyboard</code><br>
+<code>droid4-leds -s 150 keyboard</code><br>
+set screen button brightness:<br>
+<code>droid4-leds -s 200 buttons</code><br>
+<code>droid4-leds -f buttons</code><br>
+for more option you can see the help for the script:<br>
+<code>droid4-leds --help</code><br>
+<h4>vibratory</h4>
+vibrate:<br>
+<code>droid4-vibrator</code><br>
+or(you can replace "1000" with the time in microsecond you want to vibrate):<br>
+<code>droid4-vibrator 1000</code><br>
+<h4>checking the battery status</h4>
+you can check the power supply parameters by the commands:<br>
+charging/discharging via green led(on-green/off-no green) or by the command:<br>
+<code>cat /sys/class/power_supply/battery/status</code><br>
+charge level by press "POWER" key and read the last line or by the command:<br>
+<code>cat /sys/class/power_supply/battery/capacity_level</code><br>
+voltage and current:<br>
+<code>cat /sys/class/power_supply/battery/voltage_now</code><br>
+<code>cat /sys/class/power_supply/battery/current_now</code><br>
+<h4>missing symbols</h4>
+to type symbols that are missing on the keyboard you can press on the "OK" key on the keyboard and the numbers will change to the missing symbols.<br>
+[1-'Escape', 2-';', 3-':', 4-'|', 5-'`', 6-'~', 7-'{', 8-'}', 9-'[', 0-']', /-'\']<br>
+<h4>gui</h4>
+you can use pdf reader with gui by the command:<br>
+<code>modprobe atmel_mxt_ts;xinit /usr/bin/evince doc.pdf;rmmod atmel_mxt_ts</code><br>
+for image:
+<code>modprobe atmel_mxt_ts;xinit /usr/bin/eog image.jpg;rmmod atmel_mxt_ts</code><br>
+<h4>alarm_clock.sh</h4>
+you can turn on the alarm_clock via the script(replace "07:00" with your time):<br>
+<code>/usr/local/bin/alarm_clock.sh "07:00"</code><br>
+<h4>3G Internet</h4>
+you can turn on internet via the script:<br>
+<code>/usr/local/bin/droid4-internet.sh &</code><br>
+you can turn off internet via the script:<br>
+<code>/usr/local/bin/droid4-internet-stop.sh</code><br>
+<h4>audio</h4>
+you can also change the audio setting:<br>
+set volume(get values between 0%-100%):<br>
+<code>amixer set "HiFi" 100%</code><br>
+<code>amixer set "HiFi" 0%</code><br>
+<code>amixer set "HiFi" 50%</code><br>
+diseble speaker:<br>
+<code>amixer set "Speaker Right" off</code><br>
+set speaker for music:<br>
+<code>amixer set "Speaker Right" HiFi</code><br>
+enable headset:<br>
+<code>amixer set "Headset Right" HiFi</code><br>
+<code>amixer set "Headset Left" HiFi</code><br>
+disable headset:<br>
+<code>amixer set "Headset Right" off</code><br>
+<code>amixer set "Headset Left" off</code><br>
+now you can play by the command(you can replace "/usr/share/sounds/alsa/Front_Center.wav" with the file you want to play):<br>
+<code>play /usr/share/sounds/alsa/Front_Center.wav</code><br>
+<h5>config audio for voice call:</h5>
+(at the boot time the audio set automatically for voice call with default setting. if this not happen you can do it manually by the command:<code>/usr/local/bin/droid4-startup alsa</code> you can change that behavior by the file:<code>/etc/conf.d/droid4-startup</code>)<br>
+set microphone and volume(get values between 0%-100%):<br>
+<code>amixer set "Call Noise Cancellation" unmute<br>                
+<code>amixer set "Call" 100%</code><br>                           
+<code>amixer set "Mic2" 40%</code><br>         
+<code>amixer set "Left" "Mic 2"</code><br>        
+<code>amixer set "Voice" 55%</code><br>                            
+amixer set "Call Output" Speakerphone</code><br>
+set speaker for voice call:<br>
+<code>amixer set "Speaker Right" "Voice"</code><br>
+<h2>use modem options</h2>
+<h3>start the modem</h3>
+the buttons handle and the modem turn on automatically. you can change the behavior by the commands:
+automatically on:<br>
+<code>rc-update add droid4-hardware-demon default</code><br>
+automatically off:<br>
+<code>rc-update del droid4-hardware-demon default</code><br>
+you also can turn it on/off by yourself with the commands:<br>
+turn on:<br>
+<code>/etc/init.d/droid4-hardware-demon start</code><br>
+turn off:<br>
+<code>/etc/init.d/droid4-hardware-demon stop</code><br>
+<h3>list notify:<h3>
+you can press "POWER" key to see the list notify(last sms, missed calls, date, time and charge level)
+to delete the list notify you can use the alias:<br>
+<code>on</code><br>
+<h3>phone book</h3>
+you can manage the phone book via the alias <code>oc phonebook</code><br>
+add new contact(replace the "nickname" part with the nickname, "first name" part with the first name, "last name" part with the last name and the "85290000000" part with destination international number with the country code included[e.g if your international number is +85290000000 you need to type "85290000000"]):<br>
+<code> oc phonebook add -n "nickname" -l "last name" "first name" "85290000000" </code>
+edit contact(replace the "id" part with the contact id you want to edit and the "new nickname" part with the new nickname):<br>
+<code>oc phonebook edit "id" -k "new nickname"</code>
+show contact(replace the "nickname" part with the nickname you want to see):<br>
+<code>oc phonebook show -k "nickname"</code>
+update contact list for the emacs menu:
+<code>oc phonebook update -nl</code>
+for more option you can see the help for the script:<br>
+<code>oc phonebook --help</code><br>
+<h3>read sms</h3>
+<code>on</code><br>
+you can read the sms by press "POWER" key or use the emacs menu by the alias:<code>op</code> and choose sms or use the alias:<br>
+<code>oc sms -l1</code><br>
+to see only unread sms:<br>
+<code>oc sms -u</code><br>
+to mark the unread sms as read:<br>
+<code>oc sms -m</code><br>
+for more option you can see the help for the script:<br>
+<code>oc sms --help</code><br>
+to see incomplete sms you can use the alias:<br>
+<code>os</code><br>
+<h3>send sms</h3>
+you can use the emacs menu by the alias:<code>op</code> choose number and then choose "send sms" write the message and then choose "send to..." or use the alias(replace the "hellow world" part in your message and the "85290000000" part with destination international number of the sms, with the country code included):<br>
+<code>oc send -p "85290000000" "hellow world"</code><br>
+you can send also by name if you insert it in the phonebook:<br>
+<code>droid4-modem send -n "nickname" "hellow world"</code><br>
+for more option you can see the help for the script:<br>
+<code>droid4-modem send --help</code><br>
+<h3>voice call</h3>
+<h4>incomming call</h4>
+you will get notify on incomming call by vibratory, blue len will turn on and the number will appear on the screen<br>
+you can answer to the call by press on the "VOLUMEUP" key or by the alias:<br>
+<code>oc -a</code><br>
+to hang up the phone by press on the "VOLUMEDOWN" key or by the alias:<br>
+<code>oc -g</code><br>
+to hang up call waiting you can use the alias:<br>
+<code>owh</code><br>
+and for switch to call waiting:<br>
+<code>owa</code><br>
+<h4>dial</h4>
+you can use the emacs menu by the alias:<code>op</code> choose number and then choose "call ..."
+or use the alias(replace the "85290000000" part with destination number you want to call):<br>
+call with calling line id:<br>
+<code>oc call 85290000000</code><br>
+call by name:<br>
+<code>echo "oc call -n "nickname"</code><br>
+and again you can hang up the phone by "VOLUMEDOWN" key<br>
+<h4>call history</h4>
+you can see the call history via emacs menu by the alias:<code>op</code> choose "call history" or use the alias:<br>
+<code>oc history</code><br>
+for more option you can see the help for the script:<br>
+<code>droid4-modem history --help</code><br>
+<h4>dtmf</h4>
+you cen produce dtmf sound via the script(replace the "*63A4#" part with your sequence of sounds):<br>
+<code>/usr/local/bin/droid4-dtmf.sh '*63A4#'</code><br>
